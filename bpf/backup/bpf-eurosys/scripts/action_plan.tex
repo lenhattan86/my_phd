@@ -1,0 +1,26 @@
+\section{Actions}
+
+\subsection{Practicality}
+
+\paragraph{Can we get rid of assumption ``resource demand''?} The presentation mislead the readers that we expect users to accurately estimate their demand. We need justify this assumption.
+
+In fact, we only require the upper-bound of the resource demand to guarantee their performance. Furthermore, this can be practically estimated during development.
+
+\paragraph{Can we get rid of assumption ``known ON durations''?} No. We use these durations for admission control that it is hard to get rid of this one.
+
+\paragraph{Can we get rid of assumption ``known arrival times''?} Yes, we can treat 2 type of LQs. One knows their arrival times while another does not know them. If we do not know the arrival times, we will do admission control for each job instead of for the whole queue. Admission control prefers the one with known arrivals but it also tries to admit the LQ jobs without knowing the arrival times as much as possible. 
+
+To deal with this, the changes will be made to admission control as follows.
+\begin{itemize}
+	\item Admission for the set of LQ jobs with arrival times are the same as we have.
+	\item Admission for the LQ jobs with unknown arrival times will be done one by one. It is because when a job is submitted we know its arrival time. At this point, we decide to admit it to hard guarantee, soft guarantee, elastic or even reject it.
+\end{itemize}
+
+We can admit a 
+
+\paragraph{From the point of view of some people, rejecting some queues in admission control is weird.} This is unavoidable to guarantee fairness unless we propose bounded fairness instead. Bounded fairness sounds weak, It would hurt the solution rather than helping.
+
+
+\subsection{More technical Challenges}
+
+\subsection{Presentation}

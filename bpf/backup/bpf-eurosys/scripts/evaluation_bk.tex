@@ -1,0 +1,210 @@
+\subsection{Vary the number of batch queues (1-4)}
+
+\subsubsection{Very short interactive jobs (~1 sec)}
+
+In Fig \ref{fig:vshort_interactive_compl_time}, \name can complete the interactive jobs in 2 secs as the expectation of tenant. In the meantime, DRF is not able to achieve it. NOTE: DRF Weight performs close to Strict and Speed Fair because non-preemption does not allow the capability of Strict and Speed Fair to boost up the resource usage.
+
+In Fig. \ref{fig:vshort_batch_compl_time}, \name does negatively not impact the performance of batch jobs.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/vshort-interactive/interactive_compl_time}
+	\caption{Average completion time of interactive jobs. \name is as good as Strict Priority when the interactive jobs are small. }
+	\label{fig:vshort_interactive_compl_time}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/vshort-interactive/batch_compl_time}
+	\caption{Average completion time of batch jobs is not different among 4 methods.}
+	\label{fig:vshort_batch_compl_time}
+\end{figure}
+
+\subsubsection{Short interactive jobs (~10 secs)}
+
+In Fig \ref{fig:short_interactive_compl_time}, \name can complete the interactive jobs in 2 secs as the expectation of tenant. In the meantime, DRF is not able to achieve it. NOTE: DRF Weight performs close to Strict and Speed Fair because non-preemption does not allow the capability of Strict and Speed Fair to boost up the resource usage.
+
+In Fig. \ref{fig:short_batch_compl_time}, \name does negatively not impact the performance of batch jobs.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short-interactive/interactive_compl_time}
+	\caption{Average completion time of interactive jobs. \name is as good as Strict Priority when the interactive jobs are small.}
+	\label{fig:short_interactive_compl_time}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short-interactive/batch_compl_time}
+	\caption{Average completion time of batch jobs is not different among 4 methods. (todo: a bit weird when the number of batch queues are 2 and 3)}
+	\label{fig:short_batch_compl_time}
+\end{figure}
+
+Behaviors of DRF, DRFW, Strict and \name are as Figure \ref{fig:res_usage_drf}, \ref{fig:res_usage_drf_w}, \ref{fig:res_usage_strict}, \ref{fig:res_usage_speedfair}.
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short-interactive/res_usage_drf}
+	\caption{Resource usage.}
+	\label{fig:res_usage_drf}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short-interactive/res_usage_drf-w}
+	\caption{Resource usage.}
+	\label{fig:res_usage_drf_w}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short-interactive/res_usage_strict}
+	\caption{Resource usage.}
+	\label{fig:res_usage_strict}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short-interactive/res_usage_speedfair}
+	\caption{Resource usage.}
+	\label{fig:res_usage_speedfair}
+\end{figure}
+
+\subsubsection{Long interactive jobs (50 secs)}
+In this experiment, we set the size of interactive jobs is same as the batch jobs'.
+
+Figure \ref{fig:long_batch_compl_time} shows the average completion time of batch jobs. 
+\begin{itemize}
+	\item Both DRF-W and Strict Priority cause the average completion time increases up to 60\%. It strongly depends on the number of interactive jobs.
+	\item \name has the \textbf{similar completion time} with DRF that maintains the \textbf{fairness} among the tenants.
+\end{itemize}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/long-interactive/batch_compl_time}
+	\caption{Average completion time of batch jobs in Strict Priority and DRF-W are larger than others. (not happy with this figure: \name should be same as DRF. If not, explain why?)}
+	\label{fig:long_batch_compl_time}
+\end{figure}
+
+In Fig \ref{fig:long_interactive_compl_time}, we show that \name still achieve a competitive performance compared to DRF for interactive jobs.
+\begin{itemize}
+	\item Fig \ref{fig:long_interactive_compl_time} show that the average completion time of interactive jobs are similar to DRF's.
+	\item For Strict Priority and DRF-weight, the interactive jobs are speeded up but not fair for batch users.
+\end{itemize}  
+
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/long-interactive/interactive_compl_time}
+	\caption{In the case of very long interactive jobs, average completion time of interactive jobs of \name is same as DRF. Strict priority is superior to others but it is not fair.}
+	\label{fig:long_interactive_compl_time}
+\end{figure}
+
+
+
+Fig \ref{fig:long_res_usage_speedfair} shows the behavior of the \name. 
+\begin{itemize}
+	\item \name offers a lot of resources in the first 2 seconds but reduce allocated after 2 seconds as it may harm other tenants.
+	\item The small long-term share of \name ensure the fairness among tenants in long-term. How to set the weight?
+\end{itemize}
+
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/long-interactive/res_usage_speedfair}
+	\caption{Resource usage.}
+	\label{fig:long_res_usage_speedfair}
+\end{figure}
+
+%\input{scripts/subsection}
+
+\nhattan{Some notes}
+\begin{itemize}
+	\item $\beta$ depends on the number of queues and their resource demands. 
+	\item Optimal guaranteed rate $\alpha$ should be equal to the ratio of cluster capacity to the number of active interactive queues.
+	\item How to decide the duration of using $\alpha$? Is it supposed to be used to complete the short interactive jobs?
+	\item When the interactive jobs are very long, they dominate the resources in DRF and Strict Priority. Hence, the more number of interactive jobs come, the more batch jobs suffer.
+\end{itemize}
+
+\subsection{Vary the number of interactive queues (1-4)}
+
+
+\subsection{For short interactive jobs}
+
+Assume that interactive jobs in different queues come at the same time. 
+
+Fig \ref{fig:short_m_interactive_compl_time} and \ref{fig:short_m_batch_compl_time} do not show the result as we expected.
+
+Fig \ref{fig:short_m_res_usage_drf} - \ref{fig:short_m_res_usage_speedfair} show why we had these output. DRF-W cannot get enough resources as the resources are occupied. 
+
+Need to modify Strict so that it need to share the resources among interactive queues.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short_m/interactive_compl_time.eps}
+	\caption{}
+	\label{fig:short_m_interactive_compl_time}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short_m/batch_compl_time.eps}
+	\caption{}
+	\label{fig:short_m_batch_compl_time}
+\end{figure}
+
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short_m/res_usage_drf.eps}
+	\caption{Resource usage.}
+	\label{fig:short_m_res_usage_drf}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short_m/res_usage_drf-w.eps}
+	\caption{Resource usage.}
+	\label{fig:short_m_res_usage_drf-w}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short_m/res_usage_Strict.eps}
+	\caption{Resource usage.}
+	\label{fig:short_m_res_usage_Strict}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{fig/short_m/res_usage_speedfair.eps}
+	\caption{Resource usage.}
+	\label{fig:short_m_res_usage_speedfair}
+\end{figure}
+
+
+\section{Verify the correctness of the algorithm}
+
+\subsection{duration = 1 sec \& alpha = full capacity}
+
+See Figure \ref{fig:debug_res_usage} show SpeedFair can achieve full capacity if the cluster is fully available .
+
+%\begin{figure*}[!t]
+%	\centering
+%	\subfloat[DRF]{\includegraphics[width=0.5\linewidth]{fig/debugging/res_usage_drf}}
+%	\subfloat[SpeedFair]{\includegraphics[width=0.5\linewidth]{fig/debugging/res_usage_speedfair}}
+%	\caption{Resource Allocation with very short and uniform workload}
+%	\label{fig:debug_res_usage}
+%\end{figure*}
+
+\subsection{Use BB workload trace \& alpha = full capacity}
+
+In Figure \ref{fig:debug_res_usage_4_queues}, we can see that bursty jobs start at 0 can achieve full resource \footnote{(99/100, its resource demand does not fit 100)}. However, the other bursty jobs cannot achieve the maximum rate because of two reasons:
+\begin{itemize}
+\item Batch jobs occupy some resources as dicussed.
+\item However, why don't bursty jobs wait a bit and get the full resources? In fact, the interactive jobs have 2 stages Mapper and Reducer and Reducer must wait for Mapper to finish first. For this one, we can change the number of Mapper tasks so that it will improve the performance.
+\end{itemize}
+
+%\begin{figure*}[!t]
+%	\centering
+%	\subfloat[DRF]{\includegraphics[width=0.5\linewidth]{fig/debugging/trace_res_usage_drf}}
+%	\subfloat[SpeedFair]{\includegraphics[width=0.5\linewidth]{fig/debugging/trace_res_usage_speedfair}}
+%	\caption{Resource Allocation using BigBench trace.}
+%	\label{fig:debug_res_usage_4_queues}
+%\end{figure*}

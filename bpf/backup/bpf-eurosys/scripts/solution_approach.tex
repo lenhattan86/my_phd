@@ -1,0 +1,125 @@
+
+\subsection{Solution Approach}
+\label{sec:solution_approach}
+
+
+\input{scripts/algorithm}
+
+Our solution \name consists of three major components: admission control procedure to decide $\mathbb{H}$, $\mathbb{S}$ and $\mathbb{E}$, guaranteed resource provisioning procedure for $\myvec{a_i}(t)$, and spare resource allocation procedure. 
+
+\paragraph{Admission control procedure:} 
+\name admits queues into the following three classes: 
+\begin{itemize}
+\item $\mathbb{H}$: {\burstq}s admitted with hard resource guarantee.
+\item $\mathbb{S}$: {\burstq}s admitted with soft resource guarantee. Similar to hard guarantee, but need to wait when some {\burstq}s with hard guarantee are occupying system resources. %SRPT~\cite{bansal2001analysis} based scheduling is leveraged among multiple {\burstq}s in $\mathbb{S}$ to minimize the average completion time.
+\item $\mathbb{E}$: Elastic queues that can be either {\burstq}s or {\batchq}s. There is no burst guarantee, but long-term fair share is provided.
+\end{itemize}
+
+
+%\emph{Long-term admission conditions to Priority Queue.} 
+
+Before admitting \burstq-$i$, \name checks if admitting it invalidates any resource guarantees committed for {\burstq}s in $\mathbb{H}\cup\mathbb{S}$, i.e., the following \emph{safety condition} needs to be satisfied: 
+\begin{align}
+	\label{eqn:ad-safety}
+    \begin{aligned}
+	& \myvec{d_j}(n) \leq \frac{\myvec{C}\left(T_j(n+1)-T_j(n)\right)}{|\mathbb{H}|+|\mathbb{S}|+|\mathbb{E}|+1}, \forall n, \forall j \in \mathbb{H}\cup\mathbb{S},
+    \end{aligned}    
+\end{align}
+where $|\mathbb{H}|+|\mathbb{S}|+|\mathbb{E}|$ is the number of already admitted queues. 
+If (\ref{eqn:ad-safety}) is not satisfied, \burstq-$i$ is rejected. Otherwise, it is safe to admit \burstq-$i$ and the next step is to decide which of the three classes it should be added to.
+
+For \burstq-$i$ to have some resource guarantee, either hard or soft, its own total demand should not exceed its long-term fair share. Formally, the \emph{fairness condition} is 
+%  \name adds it to $\mathbb{H}$ if the following two conditions are satisfied.
+\begin{align}
+	\label{eqn:ad-fair}
+    \begin{aligned}
+	& \myvec{d_i}(n) \leq \frac{\myvec{C}\left(T_i(n+1)-T_i(n)\right)}{|\mathbb{H}|+|\mathbb{S}|+|\mathbb{E}|+1}, \forall n, 
+    \end{aligned}    
+\end{align}
+
+
+If only condition~(\ref{eqn:ad-safety}) is satisfied but (\ref{eqn:ad-fair}) is not, \burstq-$i$ is added to $\mathbb{E}$.
+If both conditions~(\ref{eqn:ad-safety}) and (\ref{eqn:ad-fair}) are satisfied, it is safe to admit \burstq-$i$ to $\mathbb{H}$ or $\mathbb{S}$. If there are enough uncommitted resources (\emph{resource condition} (\ref{eqn:ad-enough})), \burstq-$i$ is admitted to $\mathbb{H}$. Otherwise it is added to $\mathbb{S}$.
+\begin{align}
+	\label{eqn:ad-enough}
+    \begin{aligned}
+	& \frac{\myvec{d_i}(n)}{t_i(n)} \leq \myvec{C}-\sum_{j\in \mathbb{H}}\myvec{a_j}(t), \forall n, t\in[T_i(n), T_i(n)+t_i(n)].
+    \end{aligned}    
+\end{align}
+%where $\mathbb{A}$ is the set of admitted {\burstq} in Prioirty Queue and $Q$ is the total number of queues.
+
+%The first condition checks if there is still enough uncommitted capacity on each resource to guarantee the requested burst rates. The second condition holds when the requested total bursty service $\alpha^k_i(n) t^k_i(n)$ does not exceed her share between the $n$-th and $(n+1)$-th arrivals, i.e., $\frac{C^k}{Q}\left(T_i(n+1)-T_i(n)\right).$
+%
+%Otherwise, put \bursty-$i$ into Best Effort Queue if it doest not violate the long-term fairness.
+%
+%Otherwise, put \bursty-$i$ into Elastic Queue.
+
+For {\batchq}-$j$, \name simply checks the safety condition (\ref{eqn:ad-safety}). If it is satisfied, {\batchq}-j is added to $\mathbb{E}$. Otherwise {\batchq}-$j$ is rejected.
+
+
+\subsubsection*{Guaranteed resource provisioning procedure}
+
+For each {\burstq}-$i$ in $\mathbb{H}$, during $[T_i(n),T_i(n)+t_i(n)]$, \name allocates constant resources to fulfill its demand $\myvec{a_i}(t)=\frac{\myvec{d_i}(n)}{t_i(n)}$. %\footnote{In practice, {\burstq}-$i$ may not fully receive the guaranteed resources. For instance, non-preemption settings do not allow the cluster to kill the running jobs or tasks to give more resources to {\burstq}-$i$ immediately at the beginning of its burst. In such cases, more resources may be provided to {\burstq}-$i$ during the OFF period $[T_i(n)+t_i(n),T_i(n+1)]$ until its resource consumption reaches $\myvec{d_i}(n)t_i(n)$.}. 
+{\burstq}s in $\mathbb{S}$ shares the uncommitted resource $\myvec{C}-\sum_{j\in \mathbb{H}}\myvec{a_j}(t)$ based on SRPT~\cite{bansal2001analysis} until each {\burstq}-$i$'s consumption reaches $\myvec{d_i}(n)$ or the deadline arrives.
+
+
+
+
+%the procedure is similar except that the allocate resources are based on its demand and uncommitted resource, whichever is smaller, i.e., $$\myvec{a_i}(t)=\min\{\myvec{d_i}(n), \myvec{C}-\sum_{j\in \mathbb{H}\cup \mathbb{S}'}\myvec{d_j}(t)\},$$ where $\mathbb{S}'$ is the set of {\burstq}s in $\mathbb{S}$ that are admitted and allocated before {\burstq}-$i$. Again, resources are provided to {\burstq}-$i$ until its consumption reaches $\myvec{d_i}(n)*t_i(n)$.
+
+After every {\burstq} in $\mathbb{H}$ and $\mathbb{S}$ is allocated, remaining resources are allocated to queues in $\mathbb{E}$ using DRF~\cite{drf}. %\nhattan{do we really need this? It is the same as in Spare resource scheduling.}
+
+%For each admitted \bursty-$i$ in Priority queue and Best Effort queue, We allocate resources based on the two stages of her arrivals:
+%
+%Phase 1: $t\in[T_i(n),T_i(n)+t_i(n)]$, 
+%\begin{align}
+%	\label{eqn:alpha1_alloc}
+%	\begin{aligned}
+%	\myvec{a_i}(t)=\myvec{\alpha_i}(n);
+%	\end{aligned}
+%\end{align}
+
+%In practice, the bursty queues may not fully receive the guaranteed resources. For example, non-preemption setting does not allow the cluster to kill the running jobs or tasks to have more available resources for \bursty queues. However, preemption may lead to significant inefficienty because it has to restart the killed jobs or tasks. To handle this, we propose to compute $a_i$ in stage 2 as.
+%
+%Phase 2: $t\in[T_i(n)+t_i(n), T_i(n+1)], $
+%\begin{align}
+%	\label{eqn:alpha2_alloc}
+%	\begin{aligned}
+%	\myvec{a_i}(t) = 
+%	\begin{cases}
+%	      \myvec{\alpha_i}(n) & \text{if $\myvec{m}_i(t) < \myvec{\alpha_i}(n) t_i(n)$}  \\  
+%	      \frac{\frac{C}{Q}(T_i(n+1)-t)-\myvec{m}_i(t)}{T_i(n+1)-T_i(n)-t} & \text{if $\myvec{m}_i(t) \geq \myvec{\alpha_i}(n) t_i(n)$} .
+%	\end{cases}
+%	\end{aligned}
+%\end{align}
+%where $\myvec{m}_i(t)=\int_{T(n)}^{t} \myvec{r_i}(\tau)\text{d}\tau$ where $r_i(\tau)$ is the resource usage at time $\tau$. Meaning, we ensure that a bursty queue totally receives enough resources $\myvec{\alpha_i}(n) t_i(n)$ and then maintain the long-term fairness among all the queues. 
+
+\subsubsection*{Spare resource allocation procedure}
+If some allocated resources are not used, they are further shared by {\batchq}s and {\burstq}s with unsatisfied demand. This maximizes system utilization.
+
+
+%\subsubsection{High-level structure}
+%
+%\begin{itemize}
+%\item $M$ \batchq queues
+%	\begin{itemize}
+%	\item \batch-$j$ reports $\frac{\myvec{b_j}}{\max_k\left\{b^k_j\right\}}$
+%	\item \name put all \batchq queues to Elastic queue.
+%	\end{itemize}
+%	
+%\item On the arrival of \burstq-$i$:
+%	\begin{itemize}
+%	\item \bursty-$i$ reports $\left(T_i(n), t_i(n), \myvec{\alpha_i}(n)\right)$ for each $n$	
+%	\item If \bursty-$i$ does not violate the performance guarantee or long-term fairness of other jobs, we put it into Priority Queue.
+%	\item If \bursty-$i$ does not violate long-term fairness of other jobs, we put it into Best Effort Queue.
+%	\item \todo{Should we put the rejected ones to Elastic Queue?}
+%	\end{itemize}
+%	
+%\item Resource allocation
+%	\begin{itemize}	
+%	\item Allocate resources to TQs in Priority queue.
+%	\item Allocate resources to TQs in Best effort queue.
+%	\item Allocate the spare resources to TQs and LQs in Elastic queue.
+%	\end{itemize}
+%\end{itemize}
+%

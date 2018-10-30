@@ -1,0 +1,126 @@
+\subsection{Analysis of Existing Policies}
+\label{sec:property-analysis}
+
+
+\begin{table}[!t]
+	\small
+	\centering
+	\begin{tabular}{ |c||c|c|c||c| } 
+		\hline
+		Property  & SP  & DRF  & M-BVT  & BPF \\   [0.5ex] 
+		\hline\hline
+		Burst Guarantee (BG)    &  \checkmark* &$\times$ & \checkmark*  &\checkmark \\ 
+		Long-Term Fairness (LF) & $\times$ & \checkmark &\checkmark &  \checkmark \\
+		%Sharing Incentive (SI)  & $\times$ &\checkmark &\checkmark & \checkmark \\ 
+		Strategyproofness (SPF)  & $\times$ & \checkmark& $\times$ & \checkmark\\
+		Pareto Efficiency (PE)  & \checkmark & \checkmark &\checkmark & \checkmark \\
+		\hline \hline 
+		Single Resource Fairness & $\times$  & \checkmark & \checkmark & \checkmark \\
+		Bottleneck Fairness & $\times$  & \checkmark & \checkmark & \checkmark \\
+		Population Monotonicity & \checkmark  & \checkmark & \checkmark & \checkmark \\
+		\hline
+	\end{tabular}
+	\caption{Properties of existing policies and {\name}. $\checkmark^*$ means that the property holds when there is only one \burstq.}
+	%\todo{Define the asterisk for BG-SP combination here.}
+	\label{tab-properties}
+	\vspace{-0.1in}
+\end{table}
+
+
+%\todo{rewrite the following section}
+
+\textbf{Strict Priority (SP): }
+SP is employed to provide performance guarantee for {\burstq}s. As the name suggests, an SP scheduler always prioritize {\burstq}s. Therefore, when there is only one \burstq, SP provides the best possible performance guarantee. 
+However, when there are more than one {\burstq}s, it is impossible to give all of them the highest priority. Meanwhile, {\batchq}s may not receive enough resources, which violates long-term fairness. As the {\burstq}s may request more resources than what they actually need, strategyproofness is not enforced, and therefore the system may waste some resources -- i.e., it is not Pareto efficient. 
+
+%A danger with this type of service is that a queue can potentially starve out lower-priority traffic classes. 
+%
+%Obviously strict priority has burst guarantee for LQs and it is pareto-efficient. But for other properties it does not hold. For example, sharing is bad for those queues with lower-priority as they can be delayed for an infinite long time. And it is not a strategy-proofness as it can require all resources by claiming a very high priority level.   
+
+\textbf{DRF:}  
+DRF is an extension of max-min fairness to the multi-resource environment, where the dominant share is used to map the resource allocation (as a vector) to a scalar value. 
+It provides instantaneous fairness, strategyproofness, and Pareto efficiency. %In particular, the strategyproofness property is straightforward in the single-resource environment but needs careful treatments in the multi-resource environment. 
+However, because DRF is an instantaneous allocation policy without any memory, it cannot prioritize jobs with more urgent deadlines. In particular, no burst guarantee is provided. %Meanwhile, DRF is memoryless, it does not consider the time dimension, which is an important bridge between fairness and burstness. 
+Even assigning queues different weights in DRF is homogeneous over time and cannot provide the burst guarantee needed. In addition, there is no admission control. Therefore, as the number of queues increases, no queue's performance can be guaranteed.
+
+\textbf{M-BVT: }
+BVT~~\cite{bvt} was designed as a scheduler for a mix of real-time and best-effort tasks. The idea is that for real-time tasks, BVT allows them to borrow some virtual time (and therefore resources) from the future and be prioritized for a period without increasing their long-term shares. 
+
+To make it comparable, we extend it to M-BVT for a multi-resource environment.
+Under the M-BVT policy, \burstq-$i$ is assigned a virtual time warp parameter $W_i$, which represents the urgency of the queue. Upon an arrival of its burst at $A_i$, an effective virtual time $E_i = A_i-W_i$ is calculated. This is used as the priority (smaller $E_i$ means higher priority) for scheduling. When \burstq-$i$ has the only smallest $E_i$, it may use the whole system's resources and its $E_i$ increases at the rate of its progress calculated by DRF. Eventually, its $E_i$ is no longer the only smallest. Then resources are shared in a DRF-fashion among queues with the smallest virtual times.
+
+
+%until other queues catch up with \burstq-$i$ or there is some change to the system, e.g., a completion or an arrival of the {\burstq}s. 
+
+The M-BVT policy has some good properties. For instance, the DRF component ensures long-term fairness, and the BVT component strives for performance. Pareto efficiency follows from the work conservation of the policy. 
+
+However, it does not provide general burst guarantees as any new arriving queue (with larger virtual time warp parameter) may occupy the resources of existing {\burstq}s or share resources with them, thus hurting their completion time. In addition, it is not strategyproof because queues can lie about their needs in order to get a larger virtual time warp. 
+
+
+%DRFQ tries to generalize fair queuing of packets from different flows, where packet consume multiple resources. It is an expansion from DRF and broaden the concept of fairness from space to time dimension with the idea of balancing virtual time, which has some similarity as our contribution. 
+
+%Although DRFQ is used in packet environment, with a bit modification we can also apply it to datacenter scenario. And it have all properties mentioned above except burst guarantee. To allow special treatment for latency-sensitive queues, we need an extra virtual time warp parameter $w$ in BVT paper. The function of $w$ is similar to priority level, but it does not change the long-term share of different queues. However, it's does not have burst guarantee as any new arriving queue with larger $w$ may occupy your resources or share resource with you, thus hurting the completion time. And it's not a strategy-proof as there is no way to prevent user from lying.
+
+
+
+
+\textbf{Other policies} such as the CEEI~\cite{moulin2014cooperative} provide fewer desired properties. 
+%\zhenhua{I commented the details of PDRF and CEEI for now}
+
+%\textbf{Proportional Dominant Share Fairness (PDRF):}
+%Proportional fairness is a compromise-based scheduling algorithm. It assign different weight to different queues while tries to maximize the total output. We can also apply dominant share here as the following: For TQ$i$, we assign her unit weight and for LQ$j$, we assign her weight $\frac{1}{t}$ where $t$ is the percentage of her ON period divided by her total periodic length.
+%
+%Then we can directly use DRF to maxmin the weighted dominant share of all queues. Obviously, PDRF is pareto-efficient and sharing incentive. But similar to CEEI, it is not a strategy-proof and does not provide any burst guarantee for LQs. 
+%
+%
+%\textbf{Competitive Equilibrium from Equal Incomes (CEEI):}
+%We can also apply the method to fairly divide resources is Competitive Equilibrium from Equal Incomes (CEEI) from microeconomic theory. 
+%
+%The CEEI allocation is given by the Nash bargaining solution. The Nash bargaining solution picks the feasible allocation that maximizes $\prod_i u_i(a_i)$ where $u_i(a_i)$ is the utility that user $i$ gets from her allocation $a_i$. To support latency-sensitive queues, we can modify the utility function of these LQ queues. For example, we can set the utility for TQ$i$ simply her dominant share $s_i$, the utility for LQ$j$ is $s_i^{t}$, where $t$ is the percentage of her ON period divided by her total periodic length. 
+%It's easy to see that CEEI is sharing incentive and pareto-efficient. However, CEEI is not a strategy-proof as she can get more burst speed by claiming a shorter ON period; Also, CEEI does not have burst guarantee for LQ jobs as here no fixed amount of resources is guaranteed for LQ queues.    
+
+\subsection{Summary of the Tradeoffs}
+
+As listed in Table~\ref{tab-properties}, no prior policy can simultaneously provide all the desired properties of fairness/isolation for {\batchq}s while providing burst guarantees for all the {\burstq}s with strategyproofness. In particular, if strict priority is provided to an \burstq without any restriction for its best performance (e.g., SP), there is no isolation protection for {\batchq}s' performance. On the other hand, if the strictly instantaneous fairness is enforced (e.g., DRF), there is no room to prioritize short-term bursts. While the idea in M-BVT is reasonable, it is not strategyproof and cannot provide burst guarantee.
+
+%The key observation that motivates this work is that one cannot simultaneously provide all the desired properties of fairness/isolation for {\batchq}s while providing burst guarantees for all the {\burstq}s (Table~\ref{tab-properties}). 
+%In particular, SP provides the best performance (the lowest completion time) to {\burstq}s without any isolation protection for {\batchq}s' performance. 
+%DRF provides ideal instantaneous fairness without burst guarantees for {\burstq}s.
+%BVT -- even with its multi-resource extension with DRF -- is not strategyproof.
+% It is impossible to obtain the best performance and instantaneous fairness at the same time because instantaneous fairness cannot accommodate short-term burst of {\burstq}s.
+% Therefore, long-term fairness is enforced instead to give room for the short-term burst requirement for {\burstq}s.
+% On the other hand, the burst size of {\burstq}s cannot be too large compared to its long-term fair share.
+% For instance, consider a link with capacity 100 MBps and shared by one {\burstq} and one {\batchq}. The {\burstq} has ON status every 10 seconds. If its demand during the ON status is no larger than 500MB (0.5*100MBps*10s), we can prioritize this {\burstq}.
+% However, if its demand exceeds 500MB, we cannot give it high priority without hurting {\batchq}'s long-term fair share.
+
+The key question of the paper is, therefore, how to allocate system resources in a near-optimal way; meaning, satisfying all the critical properties in Table~\ref{tab-properties}.
+
+%So the approach should focus on how to dynamically adjust allocations according to the demand and performance metrics.
+%
+%\textcolor{red}{Key question: does \name solve the problem? If so, what additional challenges should we tackle?}
+%
+%
+%{\burstq}s: high value, time sensitive, hard to accommodate with guarantee
+%
+%Even with the same utilization level, the system with more {\burstq}s is likely to generate higher profits. 
+%However, this makes the resource management more challenging. 
+%
+%Figure~\ref{fig:mov_example} shows the example for only one {\burstq}, where there is no resource contention among {\burstq}s. 
+%This makes the scheduling relatively easier: we just need to give the (only) {\burstq} bounded guarantee over time. 
+%With more than one {\burstq}s, naive admission control would result in a suboptimal number of admitted {\burstq}s.
+%
+%Admission control example:
+%
+%Resource contention example: add another {\burstq} with arrival at 900 to Figure~\ref{fig:mov_example}. 
+%Solution can be SRPT, which decreases JCT.
+
+
+
+%\subsubsection*{Challenge: Increase {\burstq} Utilization}
+%\label{sec:challenge}
+%
+%Another metric beyond the performance-isolation tradeoff is the system utilization. However, it is more complicated when {\burstq}s and {\batchq}s coexist. 
+%Often, {\burstq}s have high value and are time sensitive. Therefore, they are hard to be accommodated with resource guarantees. On the other hand, it is relatively easy to fill the cluster with (possible) low value, batch jobs.
+%In other words, system utilization is no longer the sole metric and the composition of it needs to be examined. 
+%
+%In this spirit, we call the utilization of {\burstq}s with resource guarantees {\burstq} utilization, which is the third performance metric that operators are likely to be interested in.

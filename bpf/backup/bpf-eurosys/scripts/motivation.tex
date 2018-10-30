@@ -1,0 +1,96 @@
+\section{Motivation}
+\label{sec:motivation}
+
+% \todo{make sure we use queue(s) throughout the paper instead of user(s)}
+%In this section, we demonstrate the benefits of temporal co-scheduling of queues with heterogeneous performance metrics using an example to compare against existing solutions (Section~\ref{sec:ex}). 
+%Next, we explore the desired properties and the design space for such a solution (Section~\ref{sec:desire}), followed by the discussion of challenges in achieving high \burstq utilization by admitting more {\burstq}s with resource guarantee.
+% Our model and solution approach apply to a general class of resource allocation problems including those in the networking community (Section~\ref{sec:networking}) \todo{add}.
+
+%While hard guarantee and instantaneous fairness are with fundamental tradeoffs, (Section~\ref{sec:desire})  and.  and inefficiencies in existing schedulers (Section~\ref{sec:desire}), and discusses the challenges associated (Section~\ref{sec:challenge}).
+
+
+\subsection{Benefits of Temporal Co-scheduling}
+\label{sec:ex}
+
+
+%\begin{figure}[!t]
+%	\centering
+%	\includegraphics[width=0.3\linewidth]{fig/b1_mov_legend} 
+%	\\
+%	\subfloat[DRF: While instantaneous fairness is enforced, the completion time of \burstq jobs is much higher than that under SP.]{\includegraphics[width=0.8\linewidth]{fig/b1_mov_DRF_BB}\label{fig:motiv-DRF}}
+%	%\subfloat[DRF -- The completion time of 4 \burstq jobs are  202, 178, 715, and 719 seconds, respectively.]{\includegraphics[width=1.0\linewidth]{fig/b1_mov_DRF_BB}\label{fig:motiv-DRF}}
+%	\\
+%	\subfloat[Strict Priority (SP): While the completion time of \burstq jobs are reduced, \batchq does not receive its fair share after \burstq increases its demand after 1,400 seconds.]{\includegraphics[width=0.8\linewidth]{fig/b1_mov_Strict_BB}\label{fig:motiv-Strict}}
+%	%\subfloat[Strict Prority (SP)-- The completion time of 4 \burstq jobs are  124, 121, 430, and 405 seconds, respectively.]{\includegraphics[width=1.0\linewidth]{fig/b1_mov_Strict_BB}\label{fig:motiv-Strict}	}
+%	\\
+%	\subfloat[Ideal: The first two \burstq jobs finish as quickly as possible. The latter jobs cannot use more resources than \burstq's fair share.]{\includegraphics[width=0.8\linewidth]{fig/b1_mov_Optimum_BB}\label{fig:motiv-optimal}}	
+%	\caption{Need for bounded priority and long-term fairness in a shared multi-resource cluster.
+%    Although we only focus on memory allocations here, similar observations hold for other resources.}%In DRF, it is unfair for the first two jobs to slow down their progress although they require very small resources. From 0 to 1400 seconds, Strict speeds up the delay-sensitive jobs from \burstq but it later makes \batchq starving of resources because of the large jobs. \todo{change \burstq and \batchq to \burstq and \batchq}}
+%	\label{fig:motiv_ex}
+%\end{figure}
+
+Consider the example in Figure~\ref{fig:motiv_ex} again. Recall that SP and DRF are two extreme cases in trading off performance and fairness: SP provides the best performance (for {\burstq}s) with no fairness consideration (for {\batchq}s); DRF ensures the best isolation (for {\batchq}s) with poor performance (of {\burstq}s). 
+However, it is still possible for {\burstq}s and {\batchq}s to share the cluster by thoughtful co-scheduling over time.
+
+The ideal allocation is depicted in Figure~\ref{fig:motiv-optimal}. 
+The key idea is ``bounded'' priority for {\burstq}s as we discuss in the previous section. 
+In particular, before 1,400 seconds, \burstq's bursts are small, so it gets higher priority, which is similar to SP. 
+After \burstq increases its demand, only a fraction of its demand can be satisfied with the entire system's resources. Then it has to give resources back to \batchq to ensure the long-term fairness.
+
+%in IQs unless we set very high weights to IQs. Even in this case, there are at least two problems: (a) BQ starvation, (b) still no performance guarantee with multiple IQs because giving them all high weights does not work.
+
+%DRF/HUG: similar to FS as only focusing on instantaneous allocation.
+
+%Strict priority (SP): BQ starvations
+%
+%\zhenhua{We should discuss other important schedulers. Mosharaf, could you please add some?}
+%
+%Figure: DRF/SP/DRFw/\name with small interactive queue: SP $>$ DRFw $>>$ DRF (\name performs similar to SP, better than DRFw, and much better than DRF)
+%
+%Figure: DRF/SP/DRFw/\name with small interactive queue: DRF $>>$ DRFw $>$ SP (\name performs similar to DRF, better than DRFw, and much better than SP)
+
+
+
+
+%\emph{Example Setup} 
+%
+%\begin{itemize}
+%\item Framework: Tez atop YARN.
+%\item Assumption: All the jobs are memory bound jobs so that it is equivalent to single resource allocation.
+%\item cluster: 40 nodes. each node has 64 GB RAM.
+%\item \burstq submits delay-sensitive jobs. \burstq submits 4 Map Reduce jobs every 600 secs. A Map task <14GB, 1 cpu> resource takes 25 secs and a Reduce task <20GB, 1 cpu> takes 2 secs.
+%	\begin{itemize}
+%	\item 2 first jobs have 480 Map tasks and 80 Reduce tasks. 
+%	\item The 3rd and 4nd jobs have 1920 Map tasks and 320 Reduce tasks. 
+%	\end{itemize} 
+%\item \batchq submits the jobs generated from BigBench workload. The \batchq's jobs are queued up at the beginning.
+%\end{itemize}
+
+%In Figure \ref{fig:mov_example}, Strict allows \burstq to speeds up his jobs to as soon as possible. However, Strict hurts \batchq a lot when the delay-sensitive jobs are too large (from 1000).
+
+
+
+
+
+%\subsection{Just to organize our own thoughts}
+
+
+\input{scripts/properties}
+
+
+\input{scripts/analysis}
+
+%Techniques such as packing can help further increase ``good'' utilization. 
+%Our current work is based on admission in an FCFS manner.
+
+% We assume {\burstq}s submit their highest possible demand across bursts.
+%\subsection{Challenge: uncertainties in an {\burstq}'s demand}
+%
+%If an {\burstq} knows the distribution, she can run a stochastic optimization to decide the parameters used in her request. \zhenhua{Do we have any data to support this?}
+%
+%If an {\burstq} has no knowledge or the distribution varies dramatically over time (such as Figure~\ref{fig:mov_example}), she needs to submit multiple requests over time by solving a (challenging) online problem.
+
+% \subsection{Connections to networking}
+% \label{sec:networking}
+%
+% \todo{add something or remove this subsection}

@@ -1,0 +1,14 @@
+\section{Performance 17 review summary}
+
+The main optimization problem (Equation (3)) is presented assuming that the parameters and the forecast errors are stationary. In practice (as remarked in Section 5 of the
+paper), this is not the case : there is seasonality, correlation between errors or hidden effect. I would the results change in this case?  SGA would not be optimal under non-stationary error.
+\nhattan{I think our solution is optimal even if it is not stationary as we are searching for the optimal one of the sample space that contains all possible realizations.}
+
+Some workload cannot simply be delayed, so it cannot be simply translated into a cost. The amount of workload that can be delayed, or that have tight delay constraint, might be large and this might have an impact on the performance of the proposed algorithms and on the conclusions and discussions presented in the paper. 
+\nhattan{Agree. I still do not know whether our method works if we classify 2 types of workloads: delay tolerant and non-delay tolerant. However, it is beyond this paper scope.}
+
+several data centers work on a model that consists in partinioning the resources and assigning them to tasks. Hence, models based on processor-sharing or single-server queuing might be suited for describing the data-center, especially if the overall data center is considered (and not simply one of the servers). \nhattan{The model would be too detailed (perhaps not general) if we go deeply to this topic. In addition, it will not change the message of the paper.}  
+
+The result in (7) (i.e., optimal solution for energy procurement) directly depends on the assumptions about the delay cost. Hence, I think this point is really critical and should be carefully considered.
+Also, it is likely that the cost of additional delay, in real systems, can be large (the provider is probably not that willing to decrease QoS for cost reduction). \nhattan{If the delay is so critical, we will have less flexibility on GLB-RT. Obviously, long-term markets do not offer much benefit when the delay cost is dominant. Furthermore, GLB-RT will play more important role in minimizing the total cost. We already have some flavor in Figure \ref{fig:betas}. So, it is not necessary to add this.}
+

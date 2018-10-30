@@ -1,0 +1,81 @@
+\appendix
+\section{Appendices}
+\subsection{Proof of Lemma \ref{lem:drf_fail}}
+Consider a simple case with $n$ users, and each user has identical jobs. The speedup of using a GPU versus a CPU is $(1+\epsilon)$ for all jobs. %times better than a CPU for all jobs.
+Clearly, users would choose the configuration that runs faster, which are the GPU configurations in this case. 
+By the allocation with DRF, all GPUs are shared equally among users while all CPUs remain idle. Assuming other resources such as the memory is not the bottleneck, the allocation is not Pareto efficient because CPUs can be utilized to improve the progress of all users. 
+This allocation does not provide sharing incentive because every user is worse than equal sharing, where each user has some CPUs in addition to the same amount of GPUs allocated.
+Finally, if some user lies that she prefers CPUs, she will get all the CPU nodes and progress faster than others. This violates strategy-proofness.
+
+
+\subsection{Proof of Lemma \ref{lem:imposs}}
+Consider two users $A$ and $B$. Both have identical jobs. The speedup of user $A$'s jobs is $\beta_A=2$, while the speedup of user $B$'s jobs is $\beta_B=4$. Assume computation is the bottleneck for both users. The system has the same amount of CPUs and GPUs, normalized to 1. 
+
+We first consider the sharing incentive (SI) and Pareto efficiency (PE) properties. SI requires user $A$ gets at least $\frac{1}{2}(1+2) = \frac{3}{2}$ computational resources (CPUs and GPUs combined), while user $B$ gets at least $\frac{1}{2}(1+4)=\frac{5}{2}$ computational resources. From PE, we know that user $A$ should use CPUs first while user B should use GPUs first because $\beta_A < \beta_B$. 
+Because GPUs are more effective, user $A$ should get all the CPUs and some fraction of GPUs. 
+
+Note PE also requires that there should not be any leftover CPUs or GPUs if computation is the system bottleneck. 
+Let $A$'s share on GPU be $x$. Then $B$'s share on GPU is $1-x$. By the sharing incentive property, for user $A$, we have $2 x +1 \geq \frac{3}{2}$, i.e., $ x\geq \frac{1}{4}$; for user $B$, we have $4(1-x)\geq \frac{5}{2}$, where we have $x \leq \frac{3}{8}$. Therefore SI and PE requires $\frac{1}{4} \leq x \leq \frac{3}{8}$.
+	
+If both users report truthfully, assuming at the final allocation, $\exists \delta>0$ s.t. $x+\delta < \frac{3}{8}$, we show it is not strategyproof for user $A$. Specifically, we show that by lying about her speedup ratio, user $A$ can always get at least $(\frac{3}{8}-\sigma)$ fraction of GPU for any small $\sigma > 0$.
+
+To see this, let user $A$ report $\beta'_A = 4- \epsilon$ for some small $\epsilon>0$ instead of the true value $2$. By the SI property, user $A$ needs to get at least $\frac{1}{2}(1+4-\epsilon)$ computational resources. As she has a lower speedup ratio than user $B$, she will get all CPU, therefore the computational resources from GPUs are $\frac{1}{2}(1+4-\epsilon)-1 = 1.5-0.5\epsilon$. This implies that user $A$ needs to get at least $\frac{1.5-0.5\epsilon}{4-\epsilon}$ fraction of GPU, which approaches arbitrary close to $\frac{3}{8}$ with decreasing $\epsilon$. Therefore, there exists an $\epsilon$ that user $A$ can use to get at least $(\frac{3}{8}-\sigma)$ fraction of GPU. 
+Thus, to make sure user $A$ has no incentive to lie, the allocation has to provide at least $\frac{3}{8}$ fraction of GPU to user $A$. 
+
+Similarly, user $B$ can report $\beta'_B=2+\epsilon$ to increase her allocation on GPUs. If she reports $\beta'_B=3$, $B$ can get at least $\frac{2}{3}$ GPU. Clearly, there is not enough GPU to share as $\frac{3}{8} + \frac{2}{3} > 1$. So no allocation can be strategyproof.
+
+
+
+% To see this, let $A$ report $\beta'_A = 4- \epsilon$ instead, 
+% Consider $A$ report $\beta_A = 4- \epsilon$, for small $\epsilon > 0$, then by SI property, for $A$, she will get all CPU and $f(\epsilon)=\frac{0.5(5-\epsilon)-1}{4-\epsilon} = \frac{1.5-0.5\epsilon}{4-\epsilon}$ fraction of GPU, which is a decreasing function w.r.t. $\epsilon$, and it approaches to $\frac{3}{8}$. By choosing $\epsilon$ s.t. $f(\epsilon)> x+\delta$, we have a larger fraction of GPU compared to truthful reporting. So we have $\forall \delta>0$, $x+\delta \geq \frac{3}{8}$.
+	
+% 	However, if $A$ gets that much GPU by truthfully reporting $\beta_A = 2$, then $B$ can also game the system by exploiting SI property. $B$ can simply report  $\beta=2+\epsilon$ for a small $\epsilon >0$ from true $\beta_B = 4$ and a bit more memory to achieve better utility. If reported $\beta_B'$ = 3, then $B$ can have at least $\frac{2}{3}$ GPU. Then clearly, there is not enough GPU to share as $\frac{3}{8} + \frac{2}{3} > 1$. So no allocation can be strategyproof.
+
+
+
+% \subsection{Proof of Lemma \ref{lem:thresholdDRF}}
+% \label{sec:lem:thresholdDRF}
+
+% Assume the normalized CPU and GPU demands for user $i$ per job be $(c_i,g_i)$. Let the allocated CPU and GPU for user $i$ be $(a_{1i},a_{2i}$, let the capacity of the CPU and GPU be $(C_1,C_2)$. We show that the solution from the following optimization will produce a solution with desired properties and a threshold $b$.
+
+%  \begin{gather*}
+% \max \quad \prod_i z_i \\
+% \begin{aligned}
+% \textup{s.t.}\quad x_i+y_i  &\leq z_i  & \forall i\\
+%                    x_i c_i  &\leq  a_{1i} & \forall i \\
+%          y_i g_i  &\leq  a_{2i} & \forall i\\
+%          \sum_i a_{1i} &\leq C_1 &~ \\
+%          \sum_i a_{2i} &\leq C_2 &~ \\
+% \end{aligned}
+% \end{gather*}
+
+% We sort the users based on their efficiency $\beta_i = \frac{c_i}{g_i}$ increaingly and firstly we show that $\exists b$ s.t for any user with $\beta_i < b$,  $a_{2i} = 0$ and for 
+% any user with $\beta_i > b$,  $a_{1i} = 0$. 
+
+
+
+% We show that any CEEI (Competitive Equilibrium from Equal Income) solution will produce a threshold $b$ and the allocation is PE,SI and EF. CEEI provides every user with same amount of toy money and user can buy and trade their resource. When the market reaches competitive equilibrium, the ratio of unit price per GPU and unit price per CPU is the threshold we need.  The formulation can be written as the following, where $x_i$ and $y_i$ represents the number of jobs to be scheduled as CPU configurations and GPU configurations respectively.
+% \begin{gather*}
+% \max \quad \prod_i v_i \\
+% \begin{aligned}
+% \textup{s.t.}\quad x_i+y_i  &\leq v_i  & \forall i\\
+%                    x_i c_i  &\leq  a_{1i} & \forall i \\
+%          y_i g_i  &\leq  a_{2i} & \forall i\\
+%          x_im_i^1 + y_im^2_i &\leq a_{3i} & \forall i \\
+%          \sum_i (a_{1i},a_{2i},a_{3i}) &\leq (C_1,C_2,C_3) &~ \\
+% \end{aligned}
+% \end{gather*}
+
+
+
+% The solution can be done via a geometric programming.
+
+% By definition, CEEI is envy-free as each user has the same amount of toy money and the prices for all resources are indiscriminate among users. As the computation is the only bottleneck, the allocation is also Pareto-efficient. The SI comes from free trading among all users.
+
+
+
+
+% Assume that we know  $b$, one may also want to merge CPU and GPU resources into a combined one, i.e., computation resource, and apply the DRF algorithm on this combined resource. Specifically, the system picks $b$ representing the ratio between average efficiency of 1 GPU over 1 CPU core. Consider a cluster with 128 CPU cores, 8 GPUs and 256 GB memory shared by two users, if $b = 64$, the total computation is then $ 128 + 8 \times 64 =  640$ in terms of CPU cores. Based on this approach, each user gets 320 equivalent CPU cores. For instance, user $i$ may get all CPU cores and 3 GPUs while User $j$ gets 5 GPUs.
+% Again, the problem is how to choose the threshold $b$. \todo{Xiao, even if you have all $\beta_i$'s perfectly, can you find this threshold?} \xiao{We can, will add later}\mosharaf{Move}
+
+% One way to calculate the $b$ is through CEEI  (Competitive Equilibrium from Equal Income) approach. The system provides every user with same amount of toy money and user can buy and trade their resource. When the market reaches competitive equilibrium, the ratio of unit price per GPU and unit price per CPU is the threshold we need. The solution can be done via a geometric programming. However, this is not practical in the real case. Firstly, the jobs from users may not be homogeneous over time, meaning that with departures and arrivals the efficiency of different users may change sharply, as a consequence, the allocation calculated from CEEI could varies drastically, which is not practical in the real case.\mosharaf{Move}

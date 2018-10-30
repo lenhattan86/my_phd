@@ -1,0 +1,39 @@
+\subsection{Properties of \name}
+\label{sec:properties-theorem}
+
+%\todo{make this section more rigorous, proofs in the appendix}
+
+First, we argue that \emph{\name ensures long-term fairness, burst guarantee, and Pareto efficiency}. 
+%Corresponding proofs can be found in the appendix.
+
+%\zhenhua{Xiao, could you please add the proofs? The following paragraphs may be useful.}\xiao{added below,I didn't say much about pareto-efficienncy as in our discussion before, I feel this is enough.} 
+The safety condition and fairness condition ensure the long-term fairness for all {\batchq}s. %They have no fewer resources than any {\burstq} in the long-term, so it is beneficial for them to share the resources. 
+
+For {\burstq}s in $\mathbb{H}$, they have hard resource guarantee and therefore can meet their SLA. For {\burstq}s in $\mathbb{S}$, they have resource guarantee whenever possible, and only need to wait after {\burstq}s in $\mathbb{H}$ when there is a conflict. Therefore, their performance is much better than if they were under fair allocation policies. %Therefore, both of them have incentives to share. % both of them reach long-term fairness and sharing incentive.
+
+%^For burst guarantee, it is straightforward from our algorithm that we have the hard guarantee for all {\burstq}s in $\mathbb{H}$, and best-effort guarantee for {\burstq}s in $\mathbb{S}$.
+
+The addition of $\mathbb{S}$ allows more {\burstq}s to be admitted with resource guarantee, and therefore increases the system resources utilized by {\burstq}s. Finally, we fulfill spare resources with {\batchq}s, so system utilization is maximized, reaching Pareto efficiency.
+
+In addition, we prove that \emph{\name is strategyproof}. 
+
+%\zhenhua{Xiao, I rewrote the following proof. Please check if it works for you.}
+Let the true demand and deadline of LQ-$i$ be $(\myvec{d},t)$ for a particular arrival. Let the request parameter be $(\myvec{v},t')$. We first argue that $\myvec{v}=\beta \myvec{d}$ holds with $\beta>0$.
+
+As $\myvec{d}=\langle d^1,d^2,\cdots,d^k \rangle,\myvec{v}=\langle v^1,v^2,\cdots,v^k \rangle$, let $p= \min_k \left\{\frac{v^i}{d^i}\right\}$. Define a new vector $\myvec{z}= \langle z^1,z^2,\cdots,z^k \rangle$ and let $z^i  = pd^i$. Notice here $\myvec{z}$ has the same performance as $\myvec{v}$, while $z_i \leq v_i$ for any $i$. Therefore, $\myvec{z}$ may request no more resources than $\myvec{v}$, which is more likely to be admitted. Hence, it is always better to request $\myvec{z}$, which is proportional to $\myvec{d}$, the true demand.
+
+%Another thing is that, for user to complete her job in time, we have our deadline condition $t' \leq t$, so it is trivial that $\alpha \geq 1$.
+Regarding the demand $\myvec{d}$, reporting a larger $\myvec{v}$ ($\beta>1$) still satisfies its demand, while has a higher risk being rejected as it requests higher demand, while it does not make sense to report a smaller $\myvec{v}$ ($\beta<1$) as it may receive fewer resources than it actually needs. %On the other side, reporting a tighter deadline still satisfies the deadlines, while has a higher risk being rejected as it requests higher demand. 
+%Now consider the two parameters $(\myvec{d},t)$ in \name. If a queue requests more bursty demand ($t'\myvec{v} \geq t\myvec{d}$ with at least one inequality is strictly greater than), it is less likely to be admitted with guarantees. If admitted, it satisfied the deadline constraint either way
+Therefore, there is no incentive to for LQ-$i$ to lie about its $\myvec{d}$.
+The argument for deadline is similar. Reporting a larger deadline does not make sense as it may receive fewer resources than it actually needs. On the other side, reporting a tighter deadline still satisfies the deadlines, while has a higher risk being rejected as it requests higher demand. 
+%Now consider the two parameters $(\myvec{d},t)$ in \name. If a queue requests more bursty demand ($t'\myvec{v} \geq t\myvec{d}$ with at least one inequality is strictly greater than), it is less likely to be admitted with guarantees. If admitted, it satisfied the deadline constraint either way
+Therefore, there is no incentive to for LQ-$i$ to lie about its deadline, either.
+
+%On the other hand, if a queue requests less bursty demand ($t'\myvec{v} \leq t\myvec{d}$ with at least one inequality is strictly smaller than), it is more likely to be admitted with guarantees. However, it may be provided fewer resources than it actually needs to satisfy the deadline constraint. Therefore, it has no incentive to request less than what it really needs either.
+%
+%The last step is that when a queue requests the true bursty demand ($t'\myvec{v} = t\myvec{d}$), it has no incentive to request a higher or lower rate, i.e., $\myvec{v}=\myvec{d}$. This is parallel to the argument for the total bursty demand: if it requests a higher demand, it still satisfies the deadline if admitted, but is more likely to be rejected; if it requests a lower rate with a larger $t'$, it cannot finish within the deadline even admitted. 
+
+%For the safety condition, these parameters are not involved. For fairness condition, we have $t'\myvec{v} \leq t\myvec{d}$, because if user requests more size, there is a higher chance that the queue will be put in $E$ queue, which is bad for the completion time.
+
+%Another situation is that the user reports more demand and shorter burst time, but they have $t'\myvec{v} = t\myvec{d}$. We claim this is not a dominant strategy as from condition 4, the queue is more likely to be put in S. And for S queues, we don't have guarantee that they can be finished with in their requested time. So in general, the user should report truthfully about their burst demand and duration. 

@@ -1,0 +1,54 @@
+\section{Theoretical Analysis}
+
+Each queue/user $i$ submits $\{\vec{r}_i, b_i\}$ where $r_i$ is the demand rate and $b_i$ is the burst demand. Based on the submission, \name admits and allocate resources to admitted users.
+
+\subsection{Sharing incentive}
+
+Definition: Each user should be better off sharing the cluster, than exclusively using her own partition of the cluster. Consider a cluster with identical nodes and n users. Then a user should not be able to allocate more tasks in a cluster partition consisting of $\frac{1}{n}$ of all resources.
+
+\subsection{Strategy-proofness}
+
+Definition: Users should not be able to
+benefit by lying about their resource demands. This
+provides incentive compatibility, as a user cannot
+improve her allocation by lying.
+
+\subsection{Envy-freeness}
+
+Definition: A user should not prefer the allocation of another user. This property embodies the notion of fairness.\\
+
+\textbf{\name does NOT hold this property}. For example, 2 users $i$ and $j$ arrive at \textbf{the same time}. They have the \textbf{same burst arrival times} of the \textbf{same burst demands} and we assume the burst demand is greater than half of capacity. So, one of them, e.g., $i$, will be admitted to hard guarantee class, and the other, e.g., $j$, is admitted to soft guarantee class. Obviously, $j$ would envy $i$. To be more general, the users in soft guarantee envies the users in hard guarantee. Rejected users envies the admitted users.
+
+\textbf{Envy-freeness is held among the users in the same class like hard guarantee, elastic, or rejected but NOT soft guarantee.} If they are in the hard guarantee class, their burst demand are guaranteed. If they are in elastic class, they are treated like DRF. If they are in the soft guarantee class, their allocation still depends on their arrival times in the FCFS manner. 
+
+\subsection{Pareto efficiency}
+
+Definition: It should not be possible to increase the allocation of a user without decreasing the allocation of at least another user. This prop-
+erty is important as it leads to maximizing system utilization subject to satisfying the other properties.
+
+\subsection{Single resource fairness}
+
+\textbf{This property is held for all admitted users}. For the users in Elastic class, they are treated like DRF. Although the users in hard guarantee class and soft guarantee class take advantage of the burst durations, they are restricted by the long-term fairness constraints.
+
+\subsection{Bottleneck fairness}
+
+\textbf{This property is held among the users in the same class}.
+
+The users in Elastic are shared by DRF so this property is held. The dominant allocated resources of users in the soft guarantee and hard guarantee classes are bounded by $\frac{1}{n}$ where $n$ is the number of admitted queues. Hence, the total allocated bottleneck resource for \burstq users can be less than the Elastic's ones.
+
+\subsection{Population monotonicity}
+
+When a user leaves the system and relinquishes her resources, none of the
+allocations of the remaining users should decrease.
+
+\textbf{This property is held.}
+
+If an Elastic user leaves, it is same as DRF.
+
+If a user in Hard or Soft guarantee classes leaves, other users can receive more not less.
+
+\subsection{Resource monotonicity}
+
+If more resources are added to the system, none of the allocations of the existing users should decrease.
+
+As DRF violates this property, it is not held for Elastic users. Hence, \textbf{this property is not held.}

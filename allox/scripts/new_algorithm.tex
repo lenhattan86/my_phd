@@ -1,0 +1,14 @@
+\section{New Algorithm}
+
+We consider the following model: assume every job have the same CPU configurations and GPU configurations, and the number of cores of each configuration represent a machine.  For example, consider a cluster with 240 CPUs and 4 GPUs, where each job require either 24 CPUs and 1 GPUs, then there are (240/24+4/1 = 14) machines in total. Machine 1-4 are GPU machines and machine 5-14 are CPU machines. We use $M$ to denote the total number of machines.
+
+When we consider a new set of job, Let the available time of each machine be $\omega(i)$. $\omega(i)$ is set to be the maximum of current time and the time when machine $i$ finishes its current job. See figure \ref{fig:flowex1},
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,53 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Resource configurations}
+Currently, developers or (data) scientists select job configurations based on their own experience and/or some recommendations for performance and fit their budget. 
+%They would pick the best configuration parameters that works best for the performance and budget.
+Recently, there have been some works on selecting the cloud VM configurations for applications like Paris \cite{paris_socc17}, Ernest \cite{ernest}, and CherryPick \cite{cherrypick}.
+However these focus on picking the number of VMs of different VM types for an application. 
+In contrast, the estimation tool in \name predicts the processing times on different resource types for a single job, which are further utilized in scheduling and resource allocation.
+
+\paragraph{Resource managers}
+Traditional resource managers normally require users or developers to indicate their demand request before running the jobs.
+Given users' resource demands, Yarn \cite{yarn} and other allocation tools \cite{omega, borg} fit the submitted jobs when there are available resources for the requested demand.
+In contrast, \name does not ask users to submit their resource demands ahead.
+Instead, \name configures the jobs for users and submits the jobs for scheduling automatically without users' involvement.
+%Furthermore, the job can have two flexibility that runs either on CPU or GPU. 
+
+\paragraph{Multi-resource allocation and job scheduling}
+While job schedulers traditionally deal with a single resource \cite{late, mantri, quincy}, modern cluster resource managers, \eg, Mesos \cite{mesos}, YARN \cite{yarn}, and others \cite{omega, borg}, employ multi-resource schedulers \cite{drf, sjf, tetris, carbyne} to handle multiple types of resources and optimize diverse objectives. 
+These objectives can be fairness (\eg, DRF \cite{drf}), efficiency (\eg, Tetris \cite{tetris}), performance (\eg, \cite{sjf}), or combinations of different objectives (\eg, Carbyne \cite{carbyne}).
+% 
+However, \emph{none} of these focus on interchangeable resources.  %objectives, with instantaneous fairness for single configuration jobs.
+To the best of our knowledge, {\name} is the first multi-resource job scheduler over interchangeable resources (CPUs and GPUs) for both performance and fairness.
+
+\paragraph{Heterogeneous resources}
+Recent schedulers also deal with jobs with placement constraints. % focus on the jobs that have constraints on their resources.
+For instance, a job may requires a set of resources (e.g., GPUs, CPU cores, or network speed) that only a subset of VMs or servers can provide.
+Kubernetes \cite{kubernetes} is one of the most popular schedulers that deal with resource constraints in a best-effort manner. 
+%Kubernetes also can prioritize the high priority jobs by preempting the low priority ones.
+Choosy \cite{choosy} deal with the resource constraints in a fair way while Phoenix \cite{phoenix} is designed to minimize the job response time.
+%Alshed explores the flexibility of soft resource constraints to minimize the efficiency.
+Late \cite{late} is designed for improving the MapReduce job response time in heterogeneous environment.
+However, none of them deal with interchangeable resources.% of two resources.
+
+%\paragraph{Interchangeable Resources}
+
+% Schedulers for Interchangeable resources need to decide which resources to place the jobs.
+% TetriSched \cite{tetrisched} is a task-to-node scheduler that places a task on either a MPI or GPU node to maximize a \emph{single objective}, e.g. the rate of meeting deadlines for jobs.
+% Our proposed \name is a multiple-resource scheduler that \emph{simultaneously minimizes the average completion times and maintains fairness} among users.
+% TetriSched \cite{tetrisched} scheduling algorithm is based on MILP while \name can use a LP solver to solve the matching problem \cite{bipartite_note}.
+% In addition, TetriSched \cite{tetrisched} assumes the runtimes are known for scheduling and completely ignore the overheads of estimation.
+
+%\xiao{edited}
+% Schedulers for Interchangeable resources need to decide which resources to place the jobs.
+% TetriSched \cite{tetrisched} is a task-to-node scheduler that places a task on resources to optimize SLO performance while considering its soft preference on different resources. Both papers consider the placement constraints/preferences on a heterogeneous cluster.
+% Compared to our proposed \name, TetriSched uses a MILP solver to obtain a scheduling order adaptively, which produces an exponential complexity and could be a bottleneck compared to our LP solution as the clusters grow larger and larger. In addition, TetriSched will likely reject large SLO jobs or starve large best-effort jobs infinitely to get a better performance for other SLO jobs or mean latency, while \name designs the fairness part to prevent starvation for users with large jobs. Thirdly, the estimation tool for runtimes used in TetriSched only works for periodic production jobs, it also ignore the overheads of estimation, which hurt the reservation system and leads to large performance gap between estimation and real system. 
+
+%Schedulers for Interchangeable resources need to decide which resources to place the jobs. 
+The most related work is probably TetriSched \cite{tetrisched}. 
+TetriSched is a task-to-node scheduler that places tasks on resources to optimize performance while considering users'  preference over different resources. %Both papers consider the placement constraints/preferences on a heterogeneous cluster.
+Compared to TetriSched which focuses on deadlines, \name considers both performance (average completion time) and fairness. From the algorithmic perspective, TetriSched formulates the problem as a Mixed Integer Linear Programming (MILP), which cannot be solved in polynomial time so far. Instead of designing more efficient algorithms, TetriSched employs a commercial solver. In contrast,\name solves a linear programming (a min-cost matching problem) with low, polynomial complexity. We further speed up the calculation by considering only a subset of available jobs with little performance degradation. 
+In addition, TetriSched does not provide fairness and may lead to starvation, while \name explicitly balances performance and fairness, and prevents starvation. 
+Finally, TetriSched simply assumes estimations needed are known beforehand, while \name implements the tools to obtain the information in an online, automatic manner. 

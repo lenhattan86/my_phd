@@ -1,0 +1,26 @@
+Simultaneously supporting latency- and throughout-sensitive workloads in a shared environment is a classic networking challenge that is becoming increasingly more common in big data clusters. 
+Despite many advances, existing cluster schedulers force the same performance goal -- fairness in most cases -- on all jobs. 
+Latency-sensitive jobs suffer, while throughput-sensitive ones thrive. 
+Using prioritization does the opposite: it opens up a path for latency-sensitive jobs to dominate. 
+In this paper, we tackle the challenges in supporting both short-term performance and long-term fairness simultaneously with high resource utilization by proposing Bounded Priority Fairness (\name). 
+\name provides short-term resource guarantees to latency-sensitive jobs and maintains the long-term fairness for throughput-sensitive jobs. 
+The key idea is ``bounded'' priority for latency-sensitive jobs; meaning, if bursts are not too large to hurt the long-term fairness, they are given higher priority so jobs can be completed as quickly as possible. \name is the first scheduler that can provide long-term fairness, burst guarantee, and Pareto efficiency in a strategyproof manner for multi-resource scheduling. 
+Additional treatment is included for uncertainties on the burst sizes.
+Deployments and large-scale simulations show that \name closely approximates the performance of Strict Priority as well as the fairness characteristics of DRF. 
+In deployments, \name speeds up latency-sensitive jobs by $5.38\times$ compared to DRF, while still maintaining long-term fairness. 
+In the meantime, \name improves the average completion times of throughput-sensitive jobs by up to $3.05\times$ compared to Strict Priority.
+
+%\nhattan{Do we need to properties of BPF here?}
+
+%\todo{Write stuff about our proposal and result.}
+
+% Popular resource allocations such like DRF aim at instantaneous fairness, even though applications and jobs care about long-term metrics, e.g., completion time.
+% This gap may result in high variation in performance, which hurts cloud computing users and results in low resource utilization in static allocations.
+% In this work, we aim to achieve both performance and fairness with high resource utilization by designing \name.
+% \name is built upon the key observation that cloud applications have quite distinct characteristics and performance requirements.
+% Streaming jobs and interactive jobs such as Spark applications have multiple arrivals of (small) batch jobs, and once a job arrives, the goal is to finish it as quickly as possible.
+% On the other hand, many other jobs have much larger sizes, and instead of response time, the long-term average resources allocated matter.
+% This gives us a promising opportunity to prioritize streaming jobs and interactive jobs in the short term, and ensure fairness in the long term.
+% Instead of simple prioritization, where streaming jobs cannot take arbitrary amounts of resources, we adopted bounded prioritization.
+% Deployments and large-scale simulations show that \name closely approximates the performance of Strict Priority, and the fairness of DRF \cite{drf}.
+% In the deployments, \name speed up latency-sensitive jobs 5.38x (totally 9 queues in a cluster) faster than DRF and still maintains the long-term fairness to protect the throughput-sensitive jobs.

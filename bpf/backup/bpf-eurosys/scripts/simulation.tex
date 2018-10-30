@@ -1,0 +1,87 @@
+\subsection{Performance in Trace-Driven Simulations}
+\label{sec:performance_large_scale}
+
+%\subsubsection{Benchmarks' performance in simulations}
+
+To verify the correctness of the large-scale simulator, we replayed the BB trace logs from cluster experiments in the simulator.
+Table \ref{tbl:speed_up_sim} shows the factors of improvement in completion times of \burstq jobs for BB workload in simulation that are consistent with that from our cluster experiments (Table \ref{tbl:speed_up}). 
+
+\begin{table}[!t]
+\small
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|} \hline
+\multirow{2}{*}{Workload} &  \multicolumn{5}{c}{Number of {\batchq}s} & \\ \hhline{~------}
+ & 1 & 2 & 4 & 8 & 16 & 32 \\ \hline \hline
+BB & 1.08  & 1.56 & 2.32 & 4.09 & 7.28 & 16.61  \\ \hline 
+TPC-DS & 1.06 & 1.38 & 1.66 & 2.93 & 5.16 & 10.40 \\ \hline 
+TPC-H  & 1.01 & 1.28 & 1.92 & 3.04 & 5.50 & 11.35 \\ \hline 
+\end{tabular}
+\caption{[Simulation] Factors of improvement by \name across various workloads w.r.t the number of {\batchq}s.} 
+\label{tbl:speed_up_sim}
+\end{table}
+
+\name significantly improves over DRF when we have more {\batchq}s.
+We note that the factors of improvement for TPC-DS and TPC-H in the simulation are less that of the cluster experiments.
+It turns out that DRF in TCP-DS and TPC-H suffers from the allocation overheads that our simulation does not capture.
+The allocation overheads for the \burstq jobs in TPC-DS and TPC-H are large because they have more phases than the \burstq jobs in BB (only 2 phases).
+
+%\input{scripts/multiple_LQ_sim}
+
+%\subsection{Sensitivity Analysis}
+%\label{sec:sensitivity_analysis}
+%
+We use the large-scale simulator to study the impact of estimation errors and non-preemption on \burstq jobs. 
+In both cases, \name still outperforms DRF significantly. Results are omitted due to space limit.
+%
+%\subsubsection{Impact of estimation errors}
+%\label{sec:estimation_error_sim}
+%
+%\name requires users to report their estimated demand for \burstq jobs.
+%However, it is challenging to estimate the demand accurately, which naturally results in estimation errors.
+%To understand the impact of estimation errors on \name, we assume that estimation errors $e(\%)$ follow the standard normal distribution with zero mean.
+%The standard deviation (std.) of estimation errors lines in $[0, 50]$.
+%To adopt the estimation errors, we update the task demand and durations of \burstq jobs as $ {task}_{new} = {task}_{original}*(1+e/100)$.
+%
+%Figure \ref{fig:sen_analysis_est_err} shows the impact of estimation errors on the average completion time of \burstq jobs.
+%There are 1 single \burstq and 8 {\batchq}s.
+%\burstq jobs arrive every 350 seconds.
+%\name is robust when the standard deviation of estimation errors vary 0 to 20.
+%The \burstq jobs in BB suffer more from the large estimation errors (std. $>30$) than that of TPC-DS and TPC-H.
+%The delays are caused by the underestimated jobs because the excessive demand is not guaranteed by the system.
+%Meanwhile, the overestimated jobs do not suffer any delays as the guaranteed resource is more than needed.
+%Although estimation errors result in performance degradation, the performance of \burstq jobs is still much better than that of DRF (162 seconds).
+%%In the case of large errors, users are suggested reporting larger demands and longer stage-1 durations to improve the performance.\todo{Sentence doesn't parse.}
+%
+%\begin{figure}[!h]
+%\centering
+%    \includegraphics[width=0.7\linewidth]{fig/sen_analysis_est_err}
+%\caption{[Simulation] \name's performance degrades with larger estimation errors, yet is still significantly better than DRF (162 secs).}
+%\label{fig:sen_analysis_est_err}
+%\end{figure}
+%
+%
+%\subsubsection{Impact of non-preemption}
+%\label{sec:non_preemption_sim}
+%
+%To evaluate the impact of non-preemption, we vary the average task durations of {\batchq} jobs.
+%The longer task duration is, the longer the task holds its resources.
+%In this evaluation, we set up 1 \burstq and 8 {\batchq}s on the simulator.
+%Each \burstq job arrives every 350 secs.
+%The evaluation is run on three workloads BB, TPC-DS, and TPC-H.
+%
+%\begin{figure}[!h]
+%\centering
+%\includegraphics[width=0.7\linewidth]{fig/sen_analysis_task_duration}
+%\caption{[Simulation] With longer average task durations, the impact of non-preemption on the performance of \burstq jobs becomes larger. However, the average completion time is still significantly better than that of DRF (162 secs).}
+%\label{fig:sen_analysis_task_duration}
+%\end{figure}
+%
+%Figure \ref{fig:sen_analysis_task_duration} shows the impact of average task durations of \batchq jobs on the average completion time of \burstq jobs.
+%When we increase the average task durations, the performance of \burstq jobs is degraded.
+%Due to the variations of task durations, the BB curve stops increasing from 20, while the TPC-DS and TPC-H curves keep going up.
+%Recall the distributions of the task durations in Figure \ref{fig:worklad_cdf}: 70 percent of tasks in BB are very short.
+%When the average task durations are more than 20 seconds, there are still a large number of short tasks in BB that allows \name to allocate more resources to \burstq jobs.
+%TPC-DS and TPC-H have more variations of task durations that result in increasing delay for \burstq jobs.
+
+
+

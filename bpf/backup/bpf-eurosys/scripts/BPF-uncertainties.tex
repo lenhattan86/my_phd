@@ -1,0 +1,109 @@
+\subsection{Handling uncertainties}
+\label{sec:uncertainties}
+
+In practice, arrivals of {\burstq}-$i$ may have different sizes, i.e., $\myvec{d_i}$ is not deterministic but instead has some probability distributions. Now we extend \name to handle this case.
+
+We assume {\burstq}-$i$ knows its distributions, e.g., from historical data. In particular, it knows the cumulative probability distribution on each resource $k$, denoted by $F_{ik}$ if these distributions on multiple resources are independent. 
+The requirement regarding $\alpha_i$ can be converted into $\prod_j F^{-1}_{ik}(d_{ik}) \geq \alpha_i$, where $d_{ik}$ is the request demand on resource $k$. This gives $F^{-1}_{ik}(d_{ik}) \geq \alpha_i^{1/K}$. Finally the request on resource-$k$ $d_{ik}=F_{ik}(\alpha_i^{1/K})$. We call this $\alpha$-strategy.
+
+When distributions on multiple resources are correlated, we only have the general form $F^{-1}_i (\myvec{d_i}) \geq \alpha_i$, where $F_{i}$ is the joint distribution on all resources. We have the following properties in this case.\footnote{The proof is omitted due to space limit.}
+When the distributions are pairwise positively correlated, $\alpha$-strategy over-provisions resources. If they are pairwise negatively correlated, $\alpha$-strategy under-provisions resources. Numerical approaches can be applied to adjust the $\alpha$-strategy accordingly. 
+
+Taking the correlations on multiple resources into consideration is important. In particular, when these distributions are perfectly correlated, $d_{ik}=F_{ik}(\alpha_i^{1/K})$ can be reduced to $d_{ik}=F_{ik}(\alpha_i)$. When the standard deviation is large (e.g., 40\% of the mean for Normal distribution, this can reduce the demand by 10\% with three resources). This increases the chance of {\burstq}-$i$ being admitted.
+
+
+
+
+%Assume CPU and GPU profile has a joint normal distribution with correlation coefficient $\rho$. If we use $\sqrt[n]{\alpha_i}$ as an estimator for $\alpha_i$ percentile of the bivariate normal distribution. Then it's an unbiased estimator if and only if $\rho=0$. When $\rho>0$ it over-estimate the percentile and as $\rho$ approaches to 1, the actual percentile approaches to $\sqrt[n]{\alpha_i}$. When $\rho<0$, it under-estimate the percentile.
+
+%
+%$F^{-1}_{ij}(d_{ij})$
+%
+%
+%The goal of the model is firstly, to show that error has an impact on resource allocation; secondly multi-resource is different than single resource.
+%
+%For now we assume that $T$ is a constant for all users, while resource demand for queue $i$ is $ \vec{d}=(d_{i1},d_{i2},\cdots,d_{in})$ is a set of random variables satisfying i.i.d case \begin{itemize}
+%	\item $d_{ij}$ has a cumulative distribution $F_{ij}$ and density function $f_{ij}$;
+%	\item $d_{ij}$ and $d_{ik}$ are independent for $j \neq k$.
+%\end{itemize}
+%
+%Or dependent case, i.e they have a joint distribution $f_{i}$.
+%
+%When a queue arrives, it submits the deadline/duration $t$ and the demand random variable $ \vec{d}$ . The system will calculate the resource required $\vec{a}_i$ for the user to finish $\alpha_i$\% jobs before deadline on average.
+%
+%
+%
+%For the required resource to finish $\alpha_i$\% job before the deadline, we have the following constraints for i.i.d case: \begin{equation}
+%\prod_j F^{-1}_{ij}(a_{ij}) \geq \alpha
+%\end{equation}
+%Or \begin{equation} F^{-1}_i (\vec{a}_i) \geq \alpha \end{equation} for the dependent case. We assume the users have normal distribution, so that their joint distribution has a correlation coefficient $\rho$, and their marginal distribution follows normal distribution, which means  $f_{ij}$ is also normal .
+%
+%
+%
+%The admission control procedure is (if we only consider LQs) simple. If we can find a solution $\vec{a}_i$ to (1) or (2) and it satisfies other conditions from BPF paper (safety condition, fairness condition etc). Then the user is admitted.
+%
+%Note: A simple feasible solution to calculate (1) is to let $F^{-1}_{ij}(a_{ij})= \sqrt[n]{\alpha_i}.$ For (2), when the correlation is high, we can simply use every resource $j$'s $\alpha_i$ percentile to approximate the solution (that is we use $\alpha$ instead of $\sqrt[n]{\alpha}$).
+%
+%when correlation approaches 0, it shrinks to independent case (1).
+%\textbf{Missing a proof for $\rho$ to show the figure in next page}.
+%\textbf{Missing a approximation function as a better approach compared to $\sqrt[n]{\alpha_i}$ will do before today}.\\
+%
+%\textcolor{red}{new proof below}
+%
+%\textbf{Proof 1} Assume CPU and GPU profile has a joint normal distribution with correlation coefficient $\rho$. If we use $\sqrt[n]{\alpha_i}$ as an estimator for $\alpha_i$ percentile of the bivariate normal distribution. Then it's an unbiased estimator if and only if $\rho=0$. When $\rho>0$ it over-estimate the percentile and as $\rho$ approaches to 1, the actual percentile approaches to $\sqrt[n]{\alpha_i}$. When $\rho<0$, it under-estimate the percentile.
+%
+%\begin{proof}
+%	For simplicity we assume that $(X,Y)$ they have a joint standard normal distribution $f$ with correlation coefficient $\rho$. Marginal distribution follows $X \sim N(0,1), Y \sim N(0,1)$ The confidence is $\alpha$.
+%	
+%	We have for $Y=y$, \begin{equation}
+%	\label{eq:conditional}
+%		X|y \sim N(\mu_X+\rho\frac{\sigma_X}{\sigma_Y}(y-\mu_Y),\sigma_X^2(1-\rho^2)),
+%	\end{equation}
+%	If they are independent, they $\rho=0$, then $P(X,Y)=P(X)P(Y)=\sqrt{\alpha}\sqrt{\alpha}=\alpha$, so it's an unbiased estimator. If $\rho \neq 0$,
+%
+% we wish to evaluate \begin{equation}
+%	\label{eq:base}
+%	\int_{-\infty}^{\sqrt[2]{\alpha}} \int_{-\infty}^{\sqrt[2]{\alpha}} f(x,y) \,dxdy 
+%\end{equation}
+%
+%From \ref{eq:conditional}, \ref{eq:base} equals 
+%\begin{equation}
+%	\label{eq:main}
+%	\begin{split}
+%	Q=\int_{-\infty}^{\sqrt{\alpha}} \int_{-\infty}^{\sqrt{\alpha}} f(x,y) \,dxdy &= \int_{-\infty}^{\sqrt{\alpha}} \int_{-\infty}^{\sqrt{\alpha}} f(x|y)f(y) \,dxdy \\
+%	&=	\int_{-\infty}^{\sqrt{\alpha}} \int_{-\infty}^{\sqrt{\alpha}} \phi(\frac{\sqrt{\alpha}-\rho y}{\sqrt{1-\rho^2}})\phi(y) dydy \\
+%	&= 	\int_{-\infty}^{\sqrt{\alpha}} \Phi(\frac{\sqrt{\alpha}-\rho y}{\sqrt{1-\rho^2}})\phi(y) dy \\
+%	&= \int_{-\sqrt{\alpha}}^{\infty} \Phi(\frac{\sqrt{\alpha}+\rho y}{\sqrt{1-\rho^2}})\phi(y) dy 
+%	\end{split}
+%\end{equation} 
+%	Where $\Phi(\dot)$ is the CDF of a standard normal distribution, $\phi(\dot)$ is the PDF of a standard normal distribution.
+%
+%When $\alpha$ approaches $\infty$, the integral has exact solution. We have $\int \Phi(\frac{x-\mu}{\sigma})\phi(x) dx = \Phi(\frac{-\mu}{\sqrt{1+\sigma^2}})$ for $\mu$ and $\sigma$ as parameter. "Two theorems for inferences about the normal distribution with applications in acceptance sampling" from B.E.Ellison in 1964.
+%
+%By the results from B.E.Ellison, when $\alpha$ approaches $\infty$, \ref{eq:main} approaches \begin{equation*}
+%	\Phi(\frac{\sqrt{\alpha}/\rho}{\sqrt{1+(\frac{\sqrt{1-\rho^2}}{\rho}})^2}) = \Phi({\sqrt{\alpha}})
+%\end{equation*}
+% 	Which is the $\sqrt{\alpha}$ percentile. Also, when $\rho$ approaches $1$, $\Phi(\cdot)=1$, $Q \rightarrow \sqrt{\alpha}$ as limit.
+% 	
+% For the rest cases, take derivative of $\rho$ over integral, \ref{eq:main}  \begin{equation}
+% 	\frac{\partial Q}{\partial \rho} = \frac{\exp(\frac{-\alpha^2}{1+\rho})}{2\pi\sqrt{1-\rho^2}}>0
+% \end{equation}
+%And $Q(0) = \alpha$.	So for fixed $\alpha$, when $\rho>0$, $Q(\rho)>\alpha$, when $\rho<0,Q(\rho)<\alpha$.
+%	
+%\end{proof}
+%
+%Approximation:
+%
+%The $\sqrt{\alpha}$ estimator is good in general, however, when $ \rho \to 1$, the relative error can be $\frac{\sqrt{\alpha}}{\alpha}$
+%
+%\begin{table}[]
+%	\centering
+%	\caption{Relative Error changes wrt to $\alpha$}
+%	\label{my-label}
+%	\begin{tabular}{@{}lllll@{}}
+%		\toprule
+%		$\alpha$       & 0.8  & 0.9 & 0.95 & 0.99 \\ \midrule
+%		Relative Error \% & 11.8 & 5.4 & 2.6  & 0.5  \\ \bottomrule
+%	\end{tabular}
+%\end{table}
+%

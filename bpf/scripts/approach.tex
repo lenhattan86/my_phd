@@ -1,0 +1,116 @@
+\section{Approach}
+Our goal is to design a long-term fair scheduler that supports different types of queues and achieve good utilization. 
+
+It is widely known that service curve, based on network calculus, provides performance guarantee for communications networks. More than just a formalism, it enables to analyze complex systems and to prove deterministic bounds on delays, backlogs and other
+Quality-of-Service (QoS) parameters. However, under multi-resource environment, the service curve, which is based on worst-case performance, is too conservative, especially the type of resources become large.
+
+To resolve the problem, we propose a fair scheduling algorithm based on queue-based service curve.
+
+
+Queue-i is said to be guaranteed a service curve $S_i(\cdot)$, if $\forall$ time $t_2$, there exists time $t_1$ where $t_1 \in A_i^{t_2}$, and $A_i^{t_2}$ is the set of arrival times between $(t_2-T,t_2]$ of all job from Queue-i, so that $S_i(t_2-t_1) \succeq W_i(t_1,t_2)$, where $T$ is a burst parameter defined by the system. The main difference between traditional service for bandwidth allocation is that we have to take queue's demand into consideration. For example, sometimes the demand, compared to the service curve, is not enough. Then we should allow users to have bursts later.
+
+Intuitively, we ask systems to have bounded memory, where queues can have burst for limited time within a preset interval (with length $T$) from look-back.
+
+\xiao{Updated: Now $[L_i]$ only represents all users at priority level $l_i$}
+
+Algorithm: 
+\subsubsection*{Presetting}
+Specifying below parameters: \begin{enumerate}
+	\item Burstiness parameter $T \in (0,\infty]$;
+\end{enumerate}
+Let the level set be $\mathcal{L} = \{l_1,l_2,\cdots, l_L\}$ where $l_1$ is the highest priority. Denote $[L_j]$ as the set of all admitted queues with priority level $l_j$.
+
+
+\subsubsection*{Admission Control}
+$\forall$ incoming latency sensitive queue $Q_i$, let its level be $l_i$, system first reports parameter $T$ to $Q_i$ and ask $Q_i$ for a service curve between time $[0,T]$, where the service curve of queue $Q_i$ is defined as a two-piece linear function $$ S_i(t) = \begin{cases} \alpha_i t &\mbox{if } 0 \leq t < T_i' \\ 
+\beta_i t & \mbox{if } T_i' \leq t \leq T  \end{cases} $$ with $\alpha_i \geq \beta_i$. $\alpha=\beta$ for the batch job users. \todo{how to compute $\beta$}.
+\begin{enumerate}
+	\item  (Resource condition) Check if Queue-i is admitted, whether the sum of burst period from the set $[L_i]$ exceeds the capacity of the cluster : $\sum_{k \in [L_i]}  \alpha_k \preceq C $. 
+	\item  (Fairness condition) Check whether the resource allocated to this service curve is fair at aggregated $[0,T]$ time by verifying $S_i(T) \preceq \min(CT-\sum_{j \in [L_i]} S_j(T),\frac{CT}{n})$ where $n$ is the size of $[L_i]$. (Tan says it must be $n+1$)
+	\item If either step is violated, accept queue with best-effort performance.
+	\item If both guarantee and fairness conditions are satisfied, (Admit Queue-i to guarantee level $l_i$.) and if the level of Queue $Q_i$  is $l_1$, system accept Queue $i$ with unlimited time (hard) guarantee ; if not, system accept Queue $i$ with temporary (soft) guarantee;
+%	\item Check if any queue with temporary guarantee but lower level needs to be degraded into best-effort. 
+
+\end{enumerate}
+
+\subsubsection*{Resource Allocation}
+\todo{how to deal with priority levels here?}
+\begin{enumerate}
+	\item For all queues from $H$ and $S$, starting from level $l_1$ to $l_L$, At every time slot $[t,t+1)$, $Y_i(t)$ is the minimum amount of resource queue $i$ should receive from its service curve:
+	 $Y_i (t) = \min_{t_1 \in [t-T,t)} (S_i(t+1-t_1)-\sum_{\tau=t_1}^{t-1}a^{sc}_i(\tau), \alpha_i)$. Let the demand of Queue $i$ at time $t$ be $d_i(t)$, then the allocation from its service curve should be $a^{sc}_i(t) = \min\{Y_i(t), d_i(t)\}$.
+	\item Calculate leftover resource R, allocate them based a round-robin within $\mathbb{H},\mathbb{S}$ with strict priority. For example, assume there are 5 queues $Q_1,Q_2,Q_3,Q_4,Q_5$ from priority level $l_1$, then the round-robin allocation will give all remaining resource to queue  $Q_1$ during $[0,T)$, to queue $Q_2$ during $[T,2T]$ etc. unless there is not enough demand
+	\item Within every queue, FIFO will be applied.
+\end{enumerate}
+
+\begin{algorithm}
+	\small
+	\caption{\name Scheduler}
+	\label{algorithm1}
+	\begin{algorithmic}[1]
+		\Procedure{DynamicSchedule()}{}
+		\State \textsc{admit}($\mathbb{Q}$)
+		\State \textsc{allocate}($\mathbb{H},\mathbb{S}, \mathbb{E}$)
+		\EndProcedure
+		\\
+		\Function{Admit({\burstq}s $\mathbb{Q}$)}{}
+		\ForAll{\burstq  $Q \in \mathbb{Q}$}	
+		\If{fairness condition and resource condition satisfied}
+		\State{Admit $Q$ to guarantee $G$ }
+		\Else
+		\State Admit $Q$ to elastic $\mathbb{E}$
+		\EndIf
+		\EndFor
+		\State Sort $\{\mathbb{H},\mathbb{S}\}$, $\{\mathbb{E}\}$ seperately based on priority level, break ties based on arrival time;
+		
+		\State \textbf{return} $\{\mathbb{H},\mathbb{S},\mathbb{E}\}$	
+		\EndFunction
+		\\
+		\Function{allocate($\mathbb{H}$, $\mathbb{S}$, $\mathbb{E},t$)}{}
+		\State{$R = C$ }
+		\ForAll{\burstq $Q_i \in \{\mathbb{H},\mathbb{S}\}$}  
+		\State   $Y_i (t) = \min_{t_1 \in [t-T,t)} (S_i(t+1-t_1)-\sum_{\tau=t_1}^{t-1}a^{sc}_i(\tau), \alpha_i);$ 
+		\State   $a^{sc}_i(t) = \min\{Y_i(t), d_i(t),R\}$;
+		\State {$R = R- a^{sc}_i(t);$ }
+		\EndFor
+		\If {$R>0$}
+		\State{Allocate remaining resource with from Queue $\mathbb{E}$ with DRF}
+		\State{Update $R$}
+		\EndIf
+		\If {$R>0$}
+		\State{Allocate remaining resource with from Queue $\{\mathbb{H},\mathbb{S}\}$ with strict priority }
+		\EndIf
+		\EndFunction
+		%\State Reset $\mathbb{E} = \mathbb{E} \cup \mathbb{U}$, $\mathbb{U} = \emptyset$
+		%\State Sort $\mathbb{E}$ based on queue start time.
+		%\ForAll{\burstq  $E \in \mathbb{E}$}	
+		%	\If {short-term conditions \eqref{eqn:shortterm_adm_cond} satisfied}
+		%		\State Update $\mathbb{U} = \mathbb{U} \cup U$, $\mathbb{E} = \mathbb{E} \setminus E$
+		%	\EndIf
+		%\EndFor
+		%\State \textbf{return} $\{\mathbb{U} ,\mathbb{E}  \}$	
+		%\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+%To be proved: 
+%
+%Def: Let $R(t)$ be the arrival rate. $R(t)$ has an exponentially bounded burstiness with parameters $(\rho,A,\alpha)$ if it satisfies $$ P(\int_{s}^{t}R(u)du \geq \rho(t-s)+\sigma) \leq Ae^{-\alpha \sigma}$$
+%
+%Our goal is to prove
+%  $$P(\int_{s}^{t}\sum_i R_i(u)du \geq C) \leq A'e^{-\alpha' \sigma'} $$
+%for any time interval $[s,t]$.
+%
+%
+%properties to be discussed: \begin{itemize}
+%	\item parameters $T$ and $H$;
+%	\item Merit of using probabilistic service curve;
+%	\item Exponentially bounded burstiness model;
+%\end{itemize}
+
+
+%\input{scripts/algorithm}

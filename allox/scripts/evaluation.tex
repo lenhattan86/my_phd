@@ -1,0 +1,129 @@
+\section{Evaluation}
+\label{sec:evaluation}
+
+We evaluate \name through both experiments on real systems and numerical simulations. Results highlight:
+\begin{itemize}
+	\item \name reduces the average job completion time by a large fraction compared to existing methods and other baselines. \name retains significant improvements across various settings, even with relatively large estimation errors and overheads. 
+	\item \name achieves comparable performance of \SRPT under a wide range of settings. Recall that \SRPT allows preemption at no cost and optimizes performance only with no fairness restriction. Informally, it can be considered as an unrealistic lower bound for the average job completion time.  
+    \item \name provides fairness among users that is better than or comparable to existing fair allocation, and does not result in starvation for users with long jobs. Actually, \name provides the best progress for these users. 
+	%\item \name retains significant improvements across various settings, even with relatively large estimation errors and overheads\todo{we need more figures to illustrate this point}.
+\end{itemize}
+
+\subsection{Setup}
+
+\paragraph{Cluster} We setup Kubernetes with GPU support on a cluster of one master node, 8 CPU workers, and 4 GPU workers.
+The master node does not execute any jobs. Instead, it coordinates the worker nodes and runs the job estimation tools. 
+Each CPU worker is a \textit{xl170r} server from Cloudlab~\cite{cloudlab} with 20 virtual CPU cores and 64GB RAM.
+Each GPU node is a \text{p2.xlarge} instance from Amazon EC2 with 1 K80 GPU, 4 CPU cores and 61GB RAM.
+There are 4 users, which is increased in the simulations.
+
+\paragraph{Workload} There are 4 users sharing the cluster. Each user has 10 popular Tensorflow jobs, e.g., Googlenet, Lenet, and Alexnet. The job configurations such as batch sizes and batch numbers are different, resulting in the speedup rates of using one GPU versus one CPU ranging from 1.8 to 10. 
+For jobs on CPU, the number of threads is set at 19 to best utilize the virtual cores while leaving one core for other services on each node. 
+We run a small sampling job for each real job to obtain the parameters for both CPU and GPU configurations, as we discussed in Section~\ref{sec:profiling}. 
+The total overhead of sampling jobs is 3\% of the real jobs. We vary the settings in Section~\ref{sec:sensitivity} to evaluate the impacts. 
+%Note that we cannot use 20 cores because there are other services are running on each node.
+%\new{The fairness level is set at 0.5, meaning, we pick 2/4 of all users with the least fairness scores for scheduling overtime. }
+
+\paragraph{Simulator} While experiments on real systems provide most realistic evaluations, it is costly to run in large scale over a long period. To fully evaluate \name, we implement a Java-based cluster simulator, which emulates the cluster with multiple resources, e.g., CPU, GPU, and memory. We validate the accuracy of the simulator by comparing its results to those from the real experiments over the cluster (Figure~\ref{fig:avgCmplt_exp}). 
+%Jobs on the simulator can interchange between CPUs and GPUs.
+%\todo{Add the setup information}
+% For fair-cost comparison, we consider the CPU cores to GPU rate is 32.
+There are 20 GPUs, 20 CPUs with 20 cores each, and 1280 GB RAM. %\todo{Tan, please check}.
+%There are 10 users.
+
+For numerical simulations, we use the workload trace from the Google cluster \cite{google-traces} to generate arrival times for Tensorflow jobs.
+%The arrival times of our workload are the arrival times in the Google trace.
+There are 10 users and over 1000 jobs for each user. %With more users, the improvements of \name is even larger. \todo{can we run a simulation with 20 users to validate this?}
+By default, the fairness level $\alpha$ is set at $0.1$, meaning, we schedule jobs from the $1/10$ of all users who have the least progress whenever a node becomes available. The estimation errors are based on our experiments with sampling jobs whose sizes are 3\% of the corresponding real jobs and are around 10\% as we discussed in \S\ref{sec:profiling}. The impacts of the fairness level, estimation errors, and overheads are studied in \S\ref{sec:tradeoffs}, \S\ref{sec:estimation_err}, and \S\ref{sec:overhead}, respectively.
+% \todo{Tan, please update the reference}.
+% \new{
+% The standard deviation of estimation errors is set 10\%.
+% The total overhead of sampling jobs is 3\% of the real job.
+% The fairness level, estimation errors, and overheads and  are studied and varied in \S\ref{sec:tradeoffs}, \S\ref{sec:estimation_err}, and \S\ref{sec:overhead}.
+% }
+
+\paragraph{Metrics} %We consider average job completion time, and fairness.
+To evaluate the performance, we measure the average completion time of all jobs under \name and baseline algorithms.
+%Users expect to have shorter average completion time.
+We use standard deviation of progresses across users to evaluate fairness. %\todo{This is to be updated.}
+For starvation, we focus on the progress of users with longer jobs. %we compare the top 1\% job waiting time.
+
+\subsection{Baselines} 
+\label{sec:baselines}
+We compare \name to the following methods.
+
+\emph{\ESRP} (equal share with shortest job first): \ESRP divides all resources equally among users statically. 
+For a particular user, whenever a resource becomes available, \ESRP picks the job with the shortest processing time on this resource. For instance, if all jobs prefer GPUs, \ESRP first fills up all available GPUs with shortest jobs based on their processing time on GPU, and then fills available CPUs with the shortest jobs using CPU configurations. \ESRP needs the estimator to predict the processing time in different configurations.
+%If a user does not use up her allocated resources, it is equally shared among users with queued jobs. 
+% \new{
+% To pick the job configuration, \ESRP first fills up all available GPUs configurations of waiting jobs and fills up available GPUs with the shortest ones.
+% When GPU is full and there are waiting jobs, \ESRP fills available CPUs with the shortest ones using CPU configurations.
+% If a user does not use up his allocated resources, it is equally shared by the other users.
+% }
+%\del{We first use SJF to schedule all jobs to GPU then use SJF to schedule remaining jobs to CPU.} %\zhenhua{This does not make sense. If you already put all jobs to GPU, then there is no jobs left.}
+%\tanle{updated.}
+
+\emph{\DRFFIFO} (online DRF with FCFS): %\del{If a job's completion time on CPU is shorter than that on GPU, it is placed on CPU, and vice versa. }
+%\todo{Xiao, how is DRF calculated? Does it need profiling to know the demand, or you simply run FIFO and pick the user with the lowest progress?}
+Whenever a resource becomes available, \DRFFIFO schedules the first job of the user with the slowest progress.  
+Therefore, jobs are processed in a First-Come-First-Served manner within every user. 
+For job configuration, we assume users have some preference. If all jobs prefer GPUs, \DRFFIFO always picks the GPU configuration. 
+\DRFFIFO does not need the estimator to pick the configuration, and users' progress can be updated whenever a job is completed. 
+%     Each job only has a single configuration that is chosen by users.
+%     As DRFFIFO does not have 
+% 	Hence, a job only has a single configuration and DRF does not need to handle the interchangeability.
+%\tanle{updated.}
+
+
+
+% Since \DRFFIFO schedules jobs based on their arrivals, it does not need the estimator.
+% Like existing systems like Kubernetes \cite{kubernetes}, every job is predefined with a single configuration.
+% In practice, users prefer to run their jobs on GPUs because GPUs are often more powerful than CPUs.
+% So, we assume all jobs are configured to run on only GPUs with a large memory request (maximum memory of a node).
+% Online DRF is used to allocate the single-configuration jobs with 2 resources (GPU and memory) like \cite{drf}.
+%\zhenhua{I think we can add another baseline of just FIFO} 
+
+	
+\emph{\DRFSJF} (DRF with shortest job first): \DRFSJF is similar to \DRFFIFO, but within each user, jobs are scheduled in a shortest-job-first manner. Therefore, the estimator is needed. Each user relies on the estimation to pick whether CPU or GPU for each job configuration. 
+
+
+% When a GPU (or CPU) becomes available, \DRFSJF picks the user with the lowest progress and schedule her job with the smallest processing time on GPU (or CPU, respectively).
+% We consider another baseline using DRF that uses SJF to schedule the jobs. \todo{Xiao, again, how is DRF calculated?} \tanle{updated.}
+% \new{
+% Since \DRFSJF schedules jobs within a user, it need the estimator to estimate the completion times of jobs on both CPU and GPU configurations.
+% \DRFSJF chooses the most effective configuration based on the estimated completion times.
+% Online DRF is used to allocate the single-configuration jobs with 2 resources (GPU and memory) like \cite{drf}.
+% }
+% \zhenhua{From the results, CPU utilization of \DRFSJF is low. Does this mean when a CPU is available, \DRFSJF does not always schedule jobs on that? If so, we need to adjust the description accordingly.}
+
+\emph{\DRFExt}: \DRFExt uses some average speedup rate to convert GPU resources to the corresponding CPU ones, e.g., if the speedup rate is 10, 1 GPU is considered 10 CPU. %\todo{We don't need transfer rate. Use the number of CPU cores to update Figure 2 to compare between one CPU as a whole and one GPU card.}.
+%\tanle{don't get it.}
+Then the problem is simplified to the original multi-resource allocation without interchangeable resources, and online DRF is applied. 
+Within each user, jobs are processed in a shortest-job-first manner, and therefore the estimator is needed.
+%\zhenhua{The following sentences are not clear.}
+% We assume that the we can convert 3-resources to 2-resource cluster based on the average transfer rate of all jobs. If transfer rate is 10, 1 GPU can be exchanged with 10 CPU cores.
+% We apply DRF to 2-resource cluster.
+% As a job has 2 configurations, DRFExt needs to choose which configuration to run.
+%\tanle{updated.}
+% \new{
+% \DRFExt picks the configuration of a job like \ESRP does.
+% When GPU is available, \DRFExt assigns the resources to the jobs with shortest completion times on GPU first.
+% When GPU is full, \DRFExt assigns the resources to the jobs with shortest completion times on CPU.
+% }
+
+\emph{\SRPT}: At any time, the job with the shortest \emph{remaining} processing time is executed, which requires preemption. This approach is \emph{unrealistic} in many real systems such as Kubernetes because jobs cannot be paused and moved from one resource to another, or even a different resource, without large overheads.
+However, \SRPT is good at minimizing the average job completion time, and therefore serves as a goal for \name to achieve. Note that \name used in this section does not use preemption for conservative evaluations of the improvements. 
+
+
+
+%We use makespan for evaluating efficiency.
+%Given the same number of jobs, the makepan is the time for a scheduler to allocate resources and complete all jobs.
+%Hence, the shorter makespan shows the better efficiency.
+%Equal Sharing (ES) the resources are fair in terms of the amount of received resources.
+%We use ES as the baseline for fairness.
+%If performance of a user is worse than ES, it is not fair for him to use \name.
+
+
+\input{scripts/experiment}
+
+\input{scripts/simulation}

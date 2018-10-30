@@ -1,0 +1,101 @@
+\subsection{Solution approach - old}
+\label{sec:solution_approach_old}
+
+Our solution \name consists of three major components: admission control, guaranteed resource provisioning, and spare resource allocation. 
+
+\subsubsection{High-level structure}
+
+\begin{itemize}
+\item On the arrival of \bursty-$i$:
+	\begin{enumerate}
+	\item \bursty-$i$ reports $\left(T_i(n), t_i(n), \myvec{\alpha_i}(n)\right)$ for each $n$
+	\item \name runs admission control procedure
+		\begin{itemize}
+		\item If admitted, use guaranteed resource provisioning procedure to set the 				resource guarantee $a_i(t)$
+		\item If rejected, put \bursty-$i$ into the best-effort queue
+		\end{itemize}
+	\end{enumerate}
+\item On the arrival of \batch-$j$:
+	\begin{enumerate}
+	\item \batch-$j$ reports $\frac{\myvec{b_j}}{\max_k\left\{b^k_j\right\}}$
+	\item \name runs admission control procedure
+		\begin{itemize}
+		\item If admitted, use guaranteed resource provisioning procedure to set the 				resource guarantee $e_j(t)$
+		\item If rejected, put \batch-$j$ into the best-effort queue
+		\end{itemize}
+	\end{enumerate}
+\item Continuously call the spare resource allocation procedure to allocate leftover resources.
+\end{itemize}
+
+\subsubsection{Admission control procedure}
+\zhenhua{add reject option}
+For \bursty-$i$, we admit it if the following two conditions are satisfied, and reject otherwise.
+
+\begin{align}
+	\label{eqn:bursty_adm_cond_2}
+    \begin{aligned}
+	& \alpha^k_i(n) \leq C^k-\sum_{j\in \mathbb{A}}a^k_j(t), \forall n, k, t\in[T_i(n), T_i(n)+t_i(n)]\\
+	& \alpha^k_i(n) t^k_i(n) \leq \frac{C^k}{|\mathbb{A}|+|\mathbb{B}|+1}\left(T_i(n+1)-T_i(n)\right), \forall n, k	 
+    \end{aligned}    
+\end{align}
+
+
+The first condition checks if there is still enough uncommitted capacity on each resource to guarantee the requested burst rates.
+The second condition holds when the requested total bursty service $\alpha^k_i(n) t^k_i(n)$ does not exceed its share between the $n$-th and $(n+1)$-th arrivals, i.e., $\frac{C^k}{|\mathbb{A}|+|\mathbb{B}|+1}\left(T_i(n+1)-T_i(n)\right)$.
+
+In many cases the \batch tenants are in system at $t=0$. 
+However, we make \name more general by admitting \batch tenant over time.
+
+On the arrival of \batch-$j$:
+admit if this additional \batch tenant does not violate any existing guarantees:
+i.e., 
+\begin{align}
+	\label{eqn:batch_adm_cond}
+	\begin{aligned}
+	\alpha^k_i(n) t^k_i(n)\leq\frac{C^k}{|\mathbb{A}|+|\mathbb{B}|+1}\left(T_i(n+1)-T_i(n)\right), \forall i, n,k.
+	\end{aligned}
+\end{align}
+Otherwise, put \batch-$j$ into the best-effort queue.
+
+\subsubsection{Guaranteed resource provisioning procedure}
+For each admitted \bursty-$i$, there are two stages for each of its arrivals:
+
+Stage 1: $t\in[T_i(n),T_i(n)+t_i(n)]$, 
+\begin{align}
+	\label{eqn:alpha_1}
+	\begin{aligned}
+	\myvec{a_i}(t)=\myvec{\alpha_i}(n);
+	\end{aligned}
+\end{align}
+
+Stage 2: $t\in[T_i(n)+t_i(n), T_i(n+1)], $
+\begin{align}
+	\label{eqn:alpha_2}
+	\begin{aligned}
+	\myvec{a_i}(t)=\frac{\frac{C}{N+M}(T_i(n+1)-T_i(n))-\myvec{\alpha_i}(n) t_i(n)}{T_i(n+1)-T_i(n)-t_i(n)}.
+	\end{aligned}
+\end{align}
+
+\new{In practice, the bursty queues may not fully receive the guaranteed resources. Ideally, the preemption setting can kill the running jobs or tasks to have more available resorces for bursty queues. However, preemption may lead to significant inefficienty because it has to restart the killed jobs or tasks. On the other hand, a non-preemption setting does not revoke the in-use resoures of running jobs that results in lack of resources when the bursty jobs require.  In oder to handle this problem, we propose to compute $a_i$ in stage 2 as.}
+
+Stage 2: $t\in[T_i(n)+t_i(n), T_i(n+1)], $
+\begin{align}
+	\label{eqn:alpha_2a}
+	\begin{aligned}
+	\myvec{a_i}(t) = 
+	\begin{cases}
+	      \myvec{\alpha_i}(n) & \text{if $\myvec{m}_i(t) < \myvec{\alpha_i}(n) t_i(n)$}  \\  
+	      \frac{\frac{C}{N+M}(T_i(n+1)-t)-\myvec{m}_i(t)}{T_i(n+1)-T_i(n)-t} & \text{if $\myvec{m}_i(t) \geq \myvec{\alpha_i}(n) t_i(n)$} .
+	\end{cases}
+	\end{aligned}
+\end{align}
+\new{where $\myvec{m}_i(t)=\int_{T(n)}^{t} \myvec{r_i}(\tau)\text{d}\tau$ where $r_i(\tau)$ is the resource usage at time $\tau$. Meaning, we ensure that a bursty queue totally receives enough resources $\myvec{\alpha_i}(n) t_i(n)$ and then maintain the long-term fairness among all the queues}. 
+
+\nhattan{Only one of guarantee levels of resources can be reached in the multiple-resource case.}
+
+\subsubsection{Providing best-effort guarantees to LQs in the best effort queue}
+Once the demand of admitted LQs is met, the remaining guarantees are first allocated to the LQs in the best effort queue. We need to do this without hurting the long-term fairness, i.e., the guarantees to TQs.
+\zhenhua{add more details}
+
+
+For each admitted \batch-$j$, we allocate the remaining guarantee $C-\sum_{i\in\mathbb{A}\cup \mathbb{B}}\myvec{a_i}(t)$ using DRF, where $\mathbb{B}$ is the set of best effort LQs.

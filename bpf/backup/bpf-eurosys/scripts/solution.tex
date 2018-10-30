@@ -1,0 +1,59 @@
+\section{Algorithms }
+
+%\input{script/service_curve_alg}
+
+\subsection{Simple solution 1: Set high priority for interactive applications and satisfy the minimum resource requirement}
+
+Experiment: There are 2 queues: interactive and batch. The interactive queue is set at higher priority=3. It is actually equivalent to the queue weight in fair scheduling methods. We run 5 interactive jobs every 240 secs in the interactive queue.
+
+To see the performance of this solution, we illustrate the allocated cpu vcores over time in Fig \ref{fig:fix}. We can compare this with DRF in Fig \ref{fig:drf}. For DRF, a interactive job takes 3 mins to complete, while it takes 2.5 mins in the case of using high priority. It is because the interactive jobs can receive 3 times of resources compared to the batch job.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\linewidth]{fig/drfram_usage}
+\caption{Resource allocation for DRF}
+\label{fig:drf}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{fig/fix-priorityvcore_usage}
+	\caption{Resource allocation when setting priorities at (interactive:3, batch:1) }
+	\label{fig:fix}
+\end{figure}
+
+\newpage
+
+\subsection*{Simple modification: Set high priority for bursty applications in a limited period}
+
+We can set high priority for a interactive job at in a limited period. For example, we set the priority (5) for interactive in the first 120 secs from its start time, and low priority (0.5) for the next 120 secs. In the meantime, the priority of the batch job is fixed at 1. Figure \ref{fig:dynamic} illustrates the the allocated for a single interactive job.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{fig/dynamic-priority-vcore_usage}
+	\caption{Resource allocation when setting different priorities in different periods (interactive:5 in 120 secs, and 0.5 in next 120 secs, batch:1) }
+	\label{fig:dynamic}
+\end{figure}
+
+\textbf{Some notes that what we can and cannot implement on Yarn.}
+
+\begin{itemize}
+	\item We can set different priorities over time for each queue.	However, we cannot set priority for each individual application (job). Yarn allocates the resource among queues not applications.
+	\item We can set the max/min bound on the resource that will be allocated to the jobs.
+	\item We can measure the amount of resource having been used. However, we cannot measure or estimate the progress (completed percent). How to measure progress varies and depends on different types of applications.
+\end{itemize}
+
+\textbf{We may suffer from the following problems.}
+
+\begin{itemize}
+	\item A application, which resource is preempted, takes more time to complete than expected. Meaning, we may need to consider the penalty after using dynamic settings of priority. In the worst case, it requires the whole application to start over as the fail to run after being preempted.
+\end{itemize}
+
+
+\subsection{Solution 2: Set high priority for interactive applications and satisfy the completion time in the best effort}
+
+
+\subsection{Solution 3: adding multiple resource allocation}
+
+Basically, we just use DRF here.
+

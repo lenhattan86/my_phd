@@ -1,0 +1,16 @@
+\section{Sigcomm comments}
+
+\begin{itemize}
+	\item The proposed solution does not really present any difficult technical challenge. 
+	\item BPF requires as input the duration of the ON periods for low latency traffic. It is unclear to me whether jobs can know this in advance so that they can submit it to the scheduler. BFP needs accurate estimates of resource demands and their duration to schedule jobs properly. This looks like a very strong assumption. \nhattan{We can argue for this assumption as our solution is robust to estimation errors and strategyproofness. So, users may not need to report these parameters and they can be estimated instead. This must be justified in the approach section.}
+	\item BPF addresses scheduling in one specific scenario.  If new applications or computing abstractions come along, BPF might not generalize.
+	\item There is a large body of work we could draw on to schedule latency-sensitive applications on datacenters, but the paper does not seem to take it into account. \nhattan{We indeed have this in related work.}
+	\item You should compare BFP to  "SP+DRF", e.g., latency-sensitive jobs get high priority and throughput-sensitive jobs get low priority, the job scheduling within the same priority uses DRF. To guard against latency-sensitive jobs that become too large (e.g., exceeding certain pre-defined threshold), they can be converted into throughput-sensitive jobs. To me, this simple two-tier scheduler will likely achieve the same effect as BFP, and is much easier to implement. \nhattan{This is similar to DRF-W, but it won't provide performance guarantee and it is not fair as latency-sensitive jobs may dominate the resources for a long time.}
+\end{itemize}
+
+\section{What we can do?}
+
+\begin{itemize}
+	\item 1.5 page reduction. We can remove the Algorithm 1 pseudo code due to page limit and it is covered by Figure Figure 2 as well as text (0.5 pages). We can remove paragraphs at the beginning of section (0.25 pages). Shrink the figures (0.25 pages). Need 0.5 page for simulation results in section 5.3 that duplicate the results in implementation.
+	\item Currently we have simulation results and implementation that support long-term fairness, burst guarantee but NOT for pareto efficiency and strategyproofness. There is no easy way to show pareto efficiency in simulation. We can have results for strategyproofness when LQ users report more resources than they need. However, is it too straighforward?	
+\end{itemize}

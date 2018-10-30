@@ -1,0 +1,42 @@
+\section{Conclusion}
+\label{sec:outro}
+
+%We observe that all existing schedulers force the same performance goal on all jobs, which fails to serve both latency-sensitive {\burstq}s and throughput-sensitive {\batchq}s.
+%In fact, existing ``fair'' schedulers \cite{drf, drfq, hdrf,jaffe-maxmin} only make instantaneous decisions causing high latency for {\burstq}s.
+%On the other hand, just giving high priority to {\burstq}s does not solve the problem because it may starve the \batchq jobs.
+To enable the coexist of latency-sensitive {\burstq}s and the {\batchq}s, we proposed \name (Bounded Priority Fairness).
+\name provides bounded performance guarantee to {\burstq}s and maintains the long-term fairness for {\batchq}s.
+\name classifies the queues into three classes: Hard Guarantee, Soft Guarantee and Elastic.
+\name provides the best performance to {\burstq}s in the Hard Guarantee class and the better performance for {\burstq}s in the Soft Guarantee class. The scheduling is executed in a strategyproof manner, which is critical for public clouds. 
+The queues in the Elastic class share the left-over resources to maximize the system utilization. 
+In the deployments, we show that \name not only outperforms the DRF up to $5.38\times$ for {\burstq} jobs but also protects {\batchq} jobs up to $3.05\times$ compared to Strict Priority. When {\burstq}'s arrivals have different sizes, adding the $\alpha$-strategy can satisfy the deadlines with similar resource utilization.
+%The sensitivity analysis shows that our scheduler is robust to estimation errors and non-preemption.
+
+%\nhattan{We need to summarize the properties of BPF here.}
+
+\phantomsection
+\label{EndOfPaper}
+
+
+%\section{\diff{Potential improvement}}
+
+%\subsection{Improve the utilization of \name}
+
+%We observe that \name may result in \emph{low utilization} if the demand \burstq users are highly unbalanced. For example, because \burstq users require more memory than CPU that makes a large amount of memory unallocated like Figure \ref{fig:admission_speedfair_cluster}.
+
+%The idea to allocate resources like HUG \cite{hug} does instead of DRF \cite{drf} for the leftover resources. However, HUG requires the elastic demands and correlated demand vectors. 
+%\begin{itemize}
+%	\item We can collect the \emph{correlated demand vectors} from each queue. Hence, we can compute HUG for each elastic queue.
+%	\item To have something like elastic demands, we need to implement an \emph{inner-queue scheduler} instead of using FIFO. The idea is schedule the queued up jobs in the elastic queues to \emph{utilize their allocated share}. I think this one is not straight forward because the scheduler needs to choose the \emph{best set of jobs to be allocated}.
+%\end{itemize}
+
+
+%\section{\diff{Next steps}}
+
+%\subsection{support subseconds level for burstiness 2DF}
+
+%\subsection{longer tasks}
+
+%\subsection{memory caching}
+
+

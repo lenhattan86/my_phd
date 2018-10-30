@@ -1,0 +1,86 @@
+% TEMPLATE for Usenix papers, specifically to meet requirements of
+%  USENIX '05
+% originally a template for producing IEEE-format articles using LaTeX.
+%   written by Matthew Ward, CS Department, Worcester Polytechnic Institute.
+% adapted by David Beazley for his excellent SWIG paper in Proceedings,
+%   Tcl 96
+% turned into a smartass generic template by De Clarke, with thanks to
+%   both the above pioneers
+% use at your own risk.  Complaints to /dev/null.
+% make it two column with no page numbering, default is 10 point
+
+% Munged by Fred Douglis <douglis@research.att.com> 10/97 to separate
+% the .sty file from the LaTeX source template, so that people can
+% more easily include the .sty file into an existing document.  Also
+% changed to more closely follow the style guidelines as represented
+% by the Word sample file. 
+
+% Note that since 2010, USENIX does not require endnotes. If you want
+% foot of page notes, don't include the endnotes package in the 
+% usepackage command, below.
+
+% This version uses the latex2e styles, not the very ancient 2.09 stuff.
+\documentclass[preprint]{sigplanconf-eurosys}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{epsfig,endnotes}
+\usepackage{booktabs}
+
+\input{packages/packages_eurosys}
+\input{packages/macros}
+
+\title{\Large \bf \name: Mitigating the Burstiness-Fairness Tradeoff in Multi-resource Clusters -- Technical Report}
+%\authorinfo{Tan N. Le$^{1,2}$, Xiao Sun$^{1}$, Mosharaf Chowdhury$^{3}$, and Zhenhua Liu$^{1}$ \\
+%}
+%{$^1$Stony Brook University, $^2$SUNY Korea, $^3$ Universify of Michigan}{}
+\authorinfo{}
+{}{}
+
+\hypersetup{draft} % temporaly fix compiling error for BIBTEX
+
+\begin{document}
+\maketitle
+
+\subsection*{Abstract}
+\input{scripts/abstract}
+
+
+\input{scripts/intro}
+
+\input{scripts/motivation}
+
+\input{scripts/approach}
+
+\input{scripts/design_details}
+
+\input{scripts/evaluation}
+
+\input{scripts/experiment}
+
+\input{scripts/simulation}
+
+\input{scripts/probablistic_eval}
+
+\input{scripts/related}
+
+\input{scripts/conclusion}
+%
+%
+\bibliographystyle{abbrv}
+\bibliography{bib/refs}
+
+%\input{scripts/appendix}
+
+%\input{scripts/sigcomm_cmt}
+
+%\theendnotes
+
+\end{document}
+
+
+
+
+
+
+

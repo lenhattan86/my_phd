@@ -1,0 +1,53 @@
+\newpage
+
+\textcolor{red}{==========Old text==========}
+
+\section{}
+\subsection{Problem Statement}
+\emph{Given a collection of interactive jobs and batch jobs – along with information about jobs' resource requirements,speed-up durations – we must speed up interactive jobs complete to satisfy the interactive users while all jobs still receive the fair share in long-term. All information about jobs are unknown prior to their arrival.}
+
+\subsection{Approach}
+
+Each user submit to a separate queue in the cluster resource manager. There are $N$ interactive queues are for interactive users and $M$ batch queues for batch users. 
+
+Interactive jobs come periodically every $\Delta T$. For example, Spark streaming application submit micro-jobs periodically. Hence, interactive jobs are required to completed as quickly as possible so that the interactive applications can meet the delay requirement.
+
+Batch jobs are flexible. Batch jobs are usually long and arrive any time.   
+
+\subsubsection*{User Input: }
+
+Speed up resource rate $\alpha_i$ during a duration $\tau_i$ is given by an interactive user $i$. In duration $\tau_i$, the interactive user expect the receive rate at least  
+
+
+\subsubsection*{How \name works}
+
+The goals of \name are as follows.
+
+\begin{itemize}
+\item Speed-up Guarantee: \name guarantees the resource rate for interactive users in the best-effort manner. 
+\item Admission control: Which interactive jobs will be sacrificed to be best for the overall performance, when the total resource rate is out of capacity $C$.
+\item Long-term Fairness: \name allocates the resources such that batch users and interactive users receive the fair share in the long term.
+\end{itemize}
+
+\name periodically compute and allocate the resource as follows \footnote{Yarn periodically computes and reallocates the resources every 500 ms by default.}.
+
+\paragraph{Speed-up guarantee:} For each interactive queue in the duration $\tau_i$, we indicates the minimum resource requirement to them. The minimum requirement resource is the minimum of the resource rate and the real resource demand $minwise(\alpha_i, d_i)$\footnote{Here, we assume that the capacities of multiple resources are normalized so that we can apply $\alpha_i$ to any resource.}. The minwise function ensures that the minimum resource is satisfied across multiple resources. Then, there are 2 cases happening:
+
+\begin{itemize}
+\item The cluster has more resources than required. We fairly allocate the remaining resource to all queues using DRF. (why not allocating the remaining resource to the batch queues only because the interactive jobs are already happy)
+\item The cluster has less resources than required. We need to have \textit{admission control} to decide which interactive jobs will be dropped.
+\end{itemize}
+
+\paragraph{Admision Control:}  (In the current simulation, sort the interactive queues in a random order and drop the later ones. Need to be discussed.)  \textbf{We have 3 options: }
+\begin{itemize}
+\item Shortest Job First: However, it is not easy to know the progress of the job in the real system. So, how to decide which jobs are the shortest ones? My idea is to based on the "speed-up" duration $\tau_i$? The shortest jobs are the jobs that are closest to the end of "speed-up" duration.
+\item Smallest resource rate first: We can satisfy the most interactive users but it makes the large resource rate jobs suffer.
+\item Largest resource rate first: the less number of interactive users are satisfied but more resources are used for interactive jobs (not significant).
+\end{itemize}
+
+\paragraph{Long-term fairness}
+In current simulation, we implement DRF-W for long-term fairness: we set the weights (less than 1) for the interactive queues when they are beyond the speed-up duration $\tau_i$. However, it is challenging to set the weight to maintain the long-term fairness because DRF is the instantaneous resource allocation scheduler.
+
+I come up with another simple solution. As we know the amount of resources each interactive user received $A_i$ in the speed-up duration $\tau_i$. Assuming that we need to cut down the allocation in the "slow-down" duration $\varsigma_i$. We need to compute $\beta_i$ based on $A_i$, $\tau_i$, $\varsigma_i$, and the cluster capacity $C$.
+$$ \beta_i = \frac{C}{N+M} - \frac{A_i-\frac{C\tau_i}{N+M}}{\varsigma_i}$$ 
+where $N$ is the number of interactive queues, and $M$ is the number of batch queues. $\frac{C}{N+M}$ is the fairshare rate. $\varsigma_i$ has to be long enough such that $\beta_i$ is positive. We use the slow-down rate $\beta_i$ to regulate the interactive jobs similar to using $\alpha_i$.

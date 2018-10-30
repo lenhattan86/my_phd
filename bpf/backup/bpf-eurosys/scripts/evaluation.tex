@@ -1,0 +1,21 @@
+\section{Evaluation}
+
+We evaluated \name using three widely used big data benchmarks -- BigBench (BB), TPC-DS, and TPC-H. We ran experiments on a 40-server CloudLab cluster \cite{cloudlab}. We setup Tez atop YARN for the experiment. 
+
+To understand performance at a larger scale, we used a trace-driven simulator to replay jobs from the same traces. Our key findings are:
+
+\begin{enumerate}
+\item \name can closely approximate the \burstq performance of Strict Priority (\S\ref{sec:performane_guarantee}) and the long-term fairness for {\batchq}s of DRF (\S\ref{sec:fairness_guarantee}).
+% Meaning, \name not only approaches that of Strict Priority but also protects {\batchq} jobs.
+
+\item \name can provide similar benefits in the large-scale setting (\S\ref{sec:performance_large_scale}).
+
+\item \name handles multiple {\burstq}s to accommodate bounded priority and fairness (\S\ref{sec:admission}).
+
+\item  When LQs have bursty arrivals of different sizes, BPF with the $\alpha$-strategy ensures the performance with the average usage remains similar (\S\ref{sec:performance_large_scale}).
+
+%\item Sensitivity analysis shows that \name is robust to estimation errors (\S\ref{sec:estimation_error_sim}), and provide benefits to LQs under the increasing impact of non-preemption (\S\ref{sec:non_preemption_sim}). 
+\end{enumerate}
+
+\input{scripts/setup}
+

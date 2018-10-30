@@ -1,0 +1,122 @@
+\usepackage{enumerate}
+\usepackage{color}
+\usepackage{url}
+\usepackage{graphicx,epstopdf}
+\usepackage{float}
+\usepackage{amsmath,  amssymb, url, color, bbm, enumitem}
+\usepackage[maxfloats=30]{morefloats}
+
+
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{corollary}[theorem]{Corollary}
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{assumption}{Assumption}
+%\newtheorem{definition}{Definition}
+%\newtheorem{algorithm}{Algorithm}
+%\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+\newtheorem{alg}{{Algorithm}}
+
+\newcommand{\stde}{\ex_e \sqrt{\sum^T_{t=1}\left(||(y_t - \bar{y})||_{KK^{\dagger}}^2\right)}}
+\newcommand{\ex}{\mathbb{E}}
+\newcommand{\half}{\frac{1}{2}}
+\newcommand{\pr}{P_{\mathcal{B}}}
+\newcommand{\sumt}{\sum_{t=1}^T}
+\newcommand{\lmd}{\lambda}
+\newcommand{\lmde}{\hat{\lambda}_t}
+\newcommand{\sums}{\sum_{s=1}^t}
+\newcommand{\sumstau}{\sum_{s=1}^\tau}
+\newcommand{\lmdtau}{\lambda^\tau_t}
+\newcommand{\sumttau}{\sum_{t = \tau}^T}
+\newcommand{\blmd}{\hat{\lambda}}
+\newcommand{\dlmd}{\delta_\lambda}
+\newcommand{\bmu}{\bar{\mu}}
+\newcommand{\umu}{\underline{\mu}}
+\newcommand{\dv}{A^T\mu}
+\newcommand{\norm}[2]{\||#1||_#2}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+\newcommand{\prob}{\mathbb{P}}
+\newcommand{\argmin}{\arg\!\min}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\CR}{\textrm{CR}}
+\newcommand{\Rg}{\textrm{Rg}}
+\newcommand{\OPT}{OPT}
+\newcommand{\cost}{\mathrm{cost}}
+\newcommand{\eps}{\varepsilon}
+\renewcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\ouralg}{CHC }
+\newcommand{\hide}[1]{}
+\newcommand{\diffd}{\delta}
+\newcommand{\bx}{\mathbf{x}}
+
+\usepackage{ifthen}
+\newboolean{showcomments}
+\setboolean{showcomments}{true}
+\newcommand{\figg}[1]{\ifthenelse{\boolean{showcomments}}
+	{ \textcolor{red}{(Figure:  #1)}}{}}
+
+\newcommand{\xiao}[1]{\ifthenelse{\boolean{showcomments}}
+	{ \textcolor{blue}{(Xiao says:  #1)}}{}}
+\newcommand{\anshul}[1]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{red}{(Anshul says:  #1)}}{}}
+\newcommand{\josh}[1]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{red}{(Josh says:  #1)}}{}}
+\newcommand{\tanle}[1]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{red}{(Tan Le says:  #1)}}{}}
+\newcommand{\yi}[1]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{red}{(Yi says:  #1)}}{}}
+\newcommand{\zhenhua}[1]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{red}{(Zhenhua says:  #1)}}{}}
+\newcommand{\addcites}[0]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{green}{(add citation(s))}}{}}
+\newcommand{\addcite}[0]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{green}{(add citation(s))}}{}}
+\newcommand{\addref}[0]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{green}{(add ref)}}{}}
+\newcommand{\todo}[1]{\ifthenelse{\boolean{showcomments}}
+{ \textcolor{red}{(To do:  #1)}}{}}
+\newcommand{\fixes}[1]{\ifthenelse{\boolean{showcomments}}
+{\textcolor{black}{#1}}{}}
+
+ %  \addtolength{\textfloatsep}{-7mm}
+   \addtolength{\partopsep}{-1.3mm}
+  \addtolength{\columnsep}{-.3pc}
+  \renewcommand\floatpagefraction{.98}
+  \renewcommand\topfraction{.95}
+  \renewcommand\bottomfraction{.95}
+  \renewcommand\textfraction{.1}
+  \renewcommand{\baselinestretch}{.9}
+
+  \makeatletter
+
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+%   % Increase space after "References", to allow tighter line spacing
+
+%   \def\thebibliography#1{%
+% \ifnum\addauflag=0\addauthorsection\global\addauflag=1\fi
+%      \section[References]{{References} % was uppercased but this affects pdf bookmarks (SP/GM October 2004)
+%          \@mkboth{{\refname}}{{\refname}}%
+%      }%
+%      \list{[\arabic{enumi}]}{%
+%          \settowidth\labelwidth{[#1]}%
+%          \leftmargin\labelwidth
+%          \advance\leftmargin\labelsep
+%          \advance\leftmargin\bibindent
+%          \parsep=0pt\itemsep=1pt % GM July 2000
+%          \itemindent -\bibindent
+%          \listparindent \itemindent
+%          \usecounter{enumi}
+%      }%
+%      \let\newblock\@empty
+%      \raggedright % GM July 2000
+%      \sloppy
+%      \sfcode`\.=1000\relax
+%   }
+
+
+%   \makeatother 

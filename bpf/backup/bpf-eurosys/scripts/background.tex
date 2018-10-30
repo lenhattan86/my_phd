@@ -1,0 +1,19 @@
+\section{Existing scheduling policies on Yarn}
+
+\desc{Fair Scheduler and Capacity Scheduler in Yarn}
+
+Essentially, Yarn allocates the resources to its active queues. An queue is called active, if there is at least one job. In Yarn, there are two types of schedulers, which are Capacity Scheduler (CS) and Fair Scheduler (FS). Fair Scheduler equally splits cluster resources among the active queues [?]. Meaning, Fair Scheduler pursue the fairness among the queues. In the meantime, Capacity Scheduler is designed to guarantee the resource capacity for each tenant [?]. In addition, There is an added benefit that an organization can access the available resources, which are not used by others. As we bridge the gap that the interactive users are not satisfied with both existing schedulers, we discuss why Fair Scheduler and Capacity Scheduler do not work well on this gap.
+
+\desc{How Fair Scheduler works? Why do we need a new scheduling policy?}
+
+Fair Scheduler organizes the arrival jobs into queue (more precisely, pools), and fairly divides resources between the queues. The queues can be hierarchal in which the same level queues are to receive the same amount of resources. In addition, jobs can be scheduled within a queue. There are 3 fair scheduling policies in Fair Scheduler: First in first out (FIFO), fair, and dominant resource fairness (DRF). 
+
+\begin{itemize}
+\item FIFO: FIFO scheduling policy allocates the resource to the coming jobs based on their priorities and arrival times.
+\end{itemize}
+
+
+Fair Scheduler + weight.
+
+Capacity Scheduler.
+

@@ -1,0 +1,21 @@
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\begin{algorithm}
+	\caption{Stochastic Gradient Estimate based Algorithm (SGEA).}
+	\label{alg:sgea}
+	\begin{algorithmic}
+		\REQUIRE Obtain $\{p^l_i\}$ from the long-term electricity markets. \\
+		Prepare $S$ samples of $w^r_i,L^r_j$, and $p^r_i$  based on \eqref{eq:predictionErrors}.
+		\ENSURE $\{q^l_i\}$
+		\STATE ${\textbf{q}^l} = {0}$ 
+		\STATE $t:=1 $
+		\WHILE{$t \leq T$}	
+			\FORALL{ $S$ samples of $w^r_i,L^r_j$, and $p^r_i$} 
+				\STATE \textit{Solve} GLB-RT with input $w^r_i,L^r_j$, and $p^r_i$.
+				\STATE \textit{Obtain} the Lagrange multipliers $\varrho_i(\textbf{q}^l,\textbf{p}^r,\textbf{L}^r,\textbf{w}^r)$.
+			\ENDFOR	
+			\STATE \textit{Compute} $\nabla_{q^l_i}(t) = \frac{\partial F^l(\textbf{q}^l)} {\partial q^l_i}$ for $\forall i \in N$ as in Theorem \ref{theorem:lt_gradient}. 			 		
+			\STATE \textit{Update.} $q^l_i(t) = [q^l_i(t-1) - \eta_t \hat{\nabla}_{q^l_i}(t)]_+$ for $\forall i \in N$, where $\eta_t$ is the step size. Here, $\sum_{t}^{\infty}(\eta_t) = \infty $ and $\sum_{t}^{\infty}(\eta_t)^2 < \infty$.
+		\ENDWHILE
+	\end{algorithmic}
+\end{algorithm}

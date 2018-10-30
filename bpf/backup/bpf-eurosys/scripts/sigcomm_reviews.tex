@@ -1,0 +1,167 @@
+\section{Sigcomm Reviews}
+
+\subsection{Review A}
+
+ ===== Reasons to accept the paper =====
+ 
+ - finding a solution that can accommodate both latency and throughput jobs is interesting
+ - the authors have implemented their solution and tested it in a testbed and in simulation
+ 
+ ===== Issues that could prevent acceptance =====
+ 
+ - the proposed solution does not really present any difficult technical challenge
+ - BPF requires as input the duration of the ON periods for low latency traffic. It is unclear to me whether jobs can know this in advance so that they can submit it to the scheduler
+ - It is unclear to me how well a latency sensitive job would perform when it transitions from the prioritized to the fair allocation. Is this a meaningful way to enable such jobs to execute well?
+ 
+ ===== Comments for author =====
+ 
+ In general, I like the premise of the paper. Datacenters accommodate two different types of workloads. Existing schemes focus on optimization criteria that cannot accommodate latency sensitive workloads well. Therefore, the authors propose a scheduler that prioritizes latency sensitive jobs but ensures that fairness across latency and throughput sensitive jobs is achieved at longer time scales.
+ 
+ The fundamental assumption here is "if bursts are not too large to hurt the long-term fairness, they are given higher priority so jobs can be completed as quickly as possible".
+ 
+ The authors propose a solution that given knowledge of how long the burst will be (duration of ON period) they can come up with such a schedule. My main question behind the solution is how easy it is for latency sensitive jobs to express their ON duration. This topic is never addressed in the paper.
+ 
+ Second, I am unclear what the performance implications will be when a latency sensitive job gets strict priority at the beginning but then falls back to its fair allocation. Has the job managed to perform according to its requirements? In a sense, I could see situations that unless the latency sensitive job gets prioritized across its lifetime, it does not matter whether it was prioritized at the beginning.
+ 
+ In Section 4.2 the authors comment on the impact of inaccuracies in the demand estimation. They also need to address inaccuracies in the duration of the ON periods.
+ 
+ In the experimental setup TQ jobs are submitted all at the beginning while LQ jobs arrive sequentially. Why is this a good experimental setup? TQ jobs can also arrive at different points in time. Do you mean that you are holding them back until the next scheduling decision?
+ 
+ In 5.2.2 you mention that average completion time for LQs is 57 seconds while the average stage 1 duration is 27 seconds "because of inefficient resource packing and allocation overheads". 57 seconds is more than 2x27 seconds! In such a case, I wonder whether the right problem to work on is the scheduling itself or addressing the overheads.
+ 
+ In Section 5 you discuss different configurations for LQs and TQs. How can a data center operator decide how many LQs and TQs they need?
+ 
+ All in all, the problem is interesting, but I am not convinced about the practicality of the work. The difficulty in collecting inputs, the difficulty in configuring the number queues and associated implications, the unknown impact of prioritizing and then lowering the rate of a latency sensitive job, the overheads that the authors have observed experimentally and that overwhelm the performance improvement that they achieve, make me hesitant to recommend acceptance.
+ 
+ More detailed comments:
+ - using "she" and "her" for queues is very distracting in the text
+ - In Section 4.1 the authors state "the BPF scheduler needs additional parameters for LQs; namely, arrival times and demands". You also need the durations of the ON periods.
+ - Figure 8: the y-axis should say "avg. completion time of TQs"
+
+
+\subsection{Review B}
+
+===== Paper summary =====
+
+This paper presents BPF, a scheduler for datacenters that supports
+latency-sensitive and throughput-sensitive applications.  BPF
+allocates resources to latency-sensitive applications as soon as
+possible to allow for fast completion times, but also enforces
+long-term fairness between latency-sensitive and
+throughput-sensitive applications.  Evaluation in a real testbed and
+using simulations shows that BPF performs better than two competing
+approaches.
+
+===== Reasons to accept the paper =====
+
++ Experimental evaluation of real prototype, simulations
++ Solution to practical problem
+
+===== Issues that could prevent acceptance =====
+
+- BPF solves a very specific, known problem; unclear how it generalizes
+
+===== Comments for author =====
+
+Although this paper presents a working solution to a practical
+problem, the scientific contributions are unclear.  Scheduling of
+latency-sensitive processes has been studied for two decades.  BVT
+[A] was proposed back in 1999 and is analogous to BPF for CPU
+scheduling; it even considers resource reservation and admission
+control (for "hard real-time applications").  There is a large body
+of work we could draw on to schedule latency-sensitive applications
+on datacenters, but the paper does not seem to take it into account.
+Another issue is that BPF, as proposed, addresses scheduling in one
+specific scenario.  If new applications or computing abstractions
+come along, BPF might not generalize.
+
+==== Other comments
+
+* The introduction mentions that prioritizing LQs would incentivize
+them to submit arbitrarily large jobs to starve TQs.  I do not see
+the reason.
+
+* If LQs are more valuable than TQs, why is it unacceptable to
+starve TQs?
+
+* Section 3 refer to "stages", but these are not clearly defined.
+
+* What happens for resource demands that are non elastic (say, e.g.,
+an application wants 6GB of RAM)?  More generally, if an
+application requests X units of a resource, but only Y < X units
+are available, does the application wait or is it allocated
+partial resources before it can start?
+
+* Are the LQ tasks in E worse-off than tasks in TQ?  (Given H and
+S will use a large fraction of resources, LQ tasks in E might
+receive a very small fraction of resources.)
+
+* Is dominant resource fairness enforced only for tasks in E or does
+it cover tasks in H and S too?
+
+* What happens to rejected LQs and TQs?  Do they get resubmitted?
+The rate of rejected LQs and TQs could be an interesting
+evaluation metric.
+
+* In Section 5.1, how are LQ jobs scaled to reach maximum capacity
+of a single resource?
+
+* Why focus on a scenario with 1 LQ and 8 TQs?
+
+* If you assume jobs in each class arrive periodically, it implies
+loss of generality.
+
+* Could one arbitrarily vary the fair share of LQ processes by
+simply creating more LQs?
+
+* I guess terminology is related to how datacenters schedulers work,
+but it might be a good idea to provide abstractions for queue,
+job, task, phase, stage, period...  seems convoluted.
+
+* In Section 5.3.2, it seems each LQ admits process into one of H,
+S, and E.  I found this confusing.  (Don't the admission control
+and allocation procedures get applied for each queue?)
+
+* In Section 5.4.1, why do overestimated jobs not suffer any
+delays?  What if they come after an underestimated job?
+
+* In Section 5.4.2, if task durations are given by the dataset, how
+do you increase average task run time?
+
+[A] http://dl.acm.org/citation.cfm?id=319169
+
+\subsection{Review C}
+
+ ===== Paper summary =====
+ 
+ Existing distributed job schedulers optimize either for fairness or for priority. This leads to the dilemma that either throughput-sensitive jobs prevail over latency-sensitive jobs or vice versa. BPF is a new scheduler that solves this problem by allowing latency-sensitive jobs to "burst" in a short-term while guarding long-term fairness for throughput-sensitive jobs. Evaluations show that, compared to Dominant Resource Fairness (DRF) and Strict Priority (SP), BPF can get the best of both worlds.
+ 
+ ===== Reasons to accept the paper =====
+ 
+ Latency-sensitive and throughput-sensitive are two important classes of distributed computing jobs. It is nice that BPF is able to simultaneously optimize for both of them.
+ 
+ ===== Issues that could prevent acceptance =====
+ 
+ Distributed cluster management has received lots of attention in recent years, with the number of proposed schedulers continually growing over time. From this perspective, BPF is just another scheduler with a different performance goal. While the solution looks reasonable, the technical contribution is a bit incremental.
+ 
+ BFP needs accurate estimates of resource demands and their duration to schedule jobs properly. This looks like a very strong assumption to me. Given the complexity of distributed computing jobs, I am not even sure whether obtaining such accurate estimates is generally feasible. Even if it is feasible, the extra complexity may well outweigh the potential benefits.
+ 
+ You should compare BFP to  "SP+DRF", e.g., latency-sensitive jobs get high priority and throughput-sensitive jobs get low priority, the job scheduling within the same priority uses DRF. To guard against latency-sensitive jobs that become too large (e.g., exceeding certain pre-defined threshold), they can be converted into throughput-sensitive jobs. To me, this simple two-tier scheduler will likely achieve the same effect as BFP, and is much easier to implement.
+ 
+\section{Main critics}
+
+\begin{itemize}
+	\item Practicality: assumption on arrival time and resource demand.
+	\item There is not enough technical challenges.
+	\item Generality: It solves a specific problem bu cannot be generalized.
+\end{itemize}  
+  
+ 
+ \subsection{Our discussion}
+ 
+ What we need to improve?
+ 
+ \begin{itemize}
+ 	\item Find and Solve the challenges by giving the challenging questions and answering.
+ 	\item Improve presentation to highlight the contributions.
+ \end{itemize}

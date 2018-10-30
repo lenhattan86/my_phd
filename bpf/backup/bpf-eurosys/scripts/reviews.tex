@@ -1,0 +1,14 @@
+\section*{Sigcomm Reviews}
+
+\begin{itemize}
+	\item the proposed solution does not really present any difficult technical challenge. From this perspective, BPF is just another scheduler with a different performance goal. While the solution looks reasonable, the technical contribution is a bit incremental.
+	\item BPF requires as input the duration of the ON periods for low latency traffic. It is unclear to me whether jobs can know this in advance so that they can submit it to the scheduler
+	\item It is unclear to me how well a latency sensitive job would perform when it transitions from the prioritized to the fair allocation. Is this a meaningful way to enable such jobs to execute well?
+	\item BPF solves a very specific, known problem; unclear how it generalizes
+	\item BFP needs accurate estimates of resource demands and their duration to schedule jobs properly. This looks like a very strong assumption to me.
+	\item The introduction mentions that prioritizing LQs would incentivize them to submit arbitrarily large jobs to starve TQs. I do not see the reason? What happens to rejected LQs and TQs? Do they get resubmitted? The rate of rejected LQs and TQs could be an interesting evaluation metric. Could one arbitrarily vary the fair share of LQ processes by simply creating more LQs?
+	\item \delete{Approach: Section 3 refer to "stages", but these are not clearly defined. }
+	\item Evaluation: \delete{In Section 5.1, how are LQ jobs scaled to reach maximum capacity of a single resource?} \delete{In Section 5.3.2, it seems each LQ admits process into one of H, S, and E. I found this confusing. (Don't the admission control and allocation procedures get applied for each queue?) In Section 5.4.1, why do overestimated jobs not suffer any delays? What if they come after an underestimated job? In Section 5.4.2, if task durations are given by the dataset, how do you increase average task run time?}
+\end{itemize}
+
+

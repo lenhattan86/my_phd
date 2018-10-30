@@ -1,0 +1,16 @@
+Multiple resources such as CPUs, GPUs, and other accelerators can be used in an interchangeable way to meet the same computational demand. Motivated by experimental results on a cluster consisted of both CPUs and GPUs, this paper studies the new problem of scheduling jobs over interchangeable resources to optimize performance while providing fairness among users sharing the cluster. This problem is fundamentally harder, demonstrated by the poor performance of existing solutions and simpler baselines theoretically and empirically. 
+Our algorithmic idea in \name is transforming the original scheduling into a min-cost bipartite matching problem and provide dynamic fair allocation over time. 
+We implement \name on Kubernetes, which profiles and schedules jobs in an automatic, online manner. 
+Evaluations based on a small-scale, hybrid cluster and simulations highlight that \name can reduce the job completion time significantly (by up to 95\% when the system load is high) while providing fairness and preventing starvation. 
+%The problem studied in this paper is a generalization of traditional job scheduling and fair resource allocation problem, and can be applied beyond computational resources.
+
+
+
+% As the increasing demand from heavy computing applications, using GPUs to accelerate these applications become more popular than ever.
+% Frameworks like Tensorflow allow applications not only to run on CPUs but can be interchanged to run on GPUs as well.
+% This flexibility makes CPUs and GPUs interchangeable.
+% Unfortunately, the traditional schedulers in current systems like Yarn, Mesos, and Kubernetes are unable to efficiently handle the resource-interchangeable workload.
+% It is actually challenging to have minimized average completion time and fairness because applications can run in either on CPU/GPU with different speed up rates.
+% In this paper, we develop \name to support resource-interchangeable workloads. 
+% \name improves up to 89\% in terms of average completion time while maintains fairness among users.
+

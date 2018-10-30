@@ -1,0 +1,28 @@
+\vspace{-0.1in}	
+\subsection{Solution Approach}
+\label{sec:solution_approach}
+
+\name consists of the following three major components:
+
+\noindent\textbf{Admission control procedure:} 
+\name classifies admitted {\burstq}s and {\batchq}s into three classes: {\burstq}s admitted with hard resource guarantee ($\mathbb{H}$), {\burstq}s admitted with soft resource guarantee ($\mathbb{S}$), and elastic queues that can be either {\burstq}s or {\batchq}s ($\mathbb{E}$).
+
+Before admitting \burstq-$i$, \name checks if admitting it invalidates any resource guarantees committed for {\burstq}s in $\mathbb{H}\cup\mathbb{S}$, i.e., the \emph{safety condition} $\myvec{d_j}(n) \leq \frac{\myvec{C}\left(T_j(n+1)-T_j(n)\right)}{|\mathbb{H}|+|\mathbb{S}|+|\mathbb{E}|+1}, \forall n, \forall j \in \mathbb{H}\cup\mathbb{S}$.
+If it is not satisfied, \burstq-$i$ is rejected. Otherwise, it is safe to admit \burstq-$i$. If its own total demand exceeds its long-term fair share (\emph{fairness condition}), \burstq-$i$ is added to $\mathbb{E}$ for best-effort services. Otherwise if there are enough uncommitted resources, \burstq-$i$ is added to $\mathbb{H}$ with hard guarantee. If there are not enough resources left, it is added to $\mathbb{S}$. 
+For {\batchq}-$j$, \name simply checks the safety condition. If it is satisfied, {\batchq}-j is added to $\mathbb{E}$. Otherwise {\batchq}-$j$ is rejected.
+
+
+\noindent\textbf{Guaranteed resource provisioning procedure}: 
+For each {\burstq}-$i$ in $\mathbb{H}$, during $[T_i(n),T_i(n)+t_i(n)]$, \name allocates constant resources to fulfill its demand $\myvec{a_i}(t)=\frac{\myvec{d_i}(n)}{t_i(n)}$. %\footnote{In practice, {\burstq}-$i$ may not fully receive the guaranteed resources. For instance, non-preemption settings do not allow the cluster to kill the running jobs or tasks to give more resources to {\burstq}-$i$ immediately at the beginning of its burst. In such cases, more resources may be provided to {\burstq}-$i$ during the OFF period $[T_i(n)+t_i(n),T_i(n+1)]$ until its resource consumption reaches $\myvec{d_i}(n)t_i(n)$.}. 
+{\burstq}s in $\mathbb{S}$ shares the uncommitted resource $\myvec{C}-\sum_{j\in \mathbb{H}}\myvec{a_j}(t)$ based on SRPT~\cite{bansal2001analysis} until each {\burstq}-$i$'s consumption reaches $\myvec{d_i}(n)$ or the deadline arrives. 
+Remaining resources are allocated to queues in $\mathbb{E}$ using DRF~\cite{drf}. %\nhattan{do we really need this? It is the same as in Spare resource scheduling.}
+
+
+\noindent\textbf{Spare resource allocation procedure}:
+If some allocated resources are not used, they are further shared by {\batchq}s and {\burstq}s with unsatisfied demand. This maximizes system utilization.
+
+
+
+
+
+

@@ -1,0 +1,108 @@
+\section{\name: A Scheduler With Memory}
+\label{sec:approach}
+
+In this section, we first present the problem settings (\S\ref{sec:settings}) and then formally model the problem in Section~\ref{sec:properties}. \name achieves the desired properties by admission control, guaranteed resource provision, and spare resource allocation presented in Section~\ref{sec:solution_approach}. 
+Finally, we prove that BPF satisfies all the properties in Table~\ref{tab-properties} (\S\ref{sec:properties-theorem}).
+
+\subsection{Problem Settings}\label{sec:settings}
+% system resource
+We consider a system with $K$ types of resources. The capacity of resource $k$ is denoted by $C^k$. The system resource capacity is therefore a vector $\myvec{C} = \langle C^1, C^2, ..., C^K \rangle.$
+%where $C^k$ is the capacity for resource $k$ and there are $K$ types of resources in total. 
+For ease of exposition, we assume $\myvec{C}$ is a constant over time, while our methodology applies directly to the cases with time-varying $\myvec{C}(t)$, e.g., with estimations of $\myvec{C}(t)$ at the beginning and leveraging stochastic optimization \cite{schneider2007stochastic} and online algorithm design \cite{jaillet2012online}.%, which is beyond the scope of this paper. 
+
+% tenants demand
+We restrict our attention to {\burstq}s for interactive sessions and streaming applications, and {{\batchq}}s for batch jobs. 
+
+{\burstq}-$i$'s demand comes from a series $N_i$ of bursts, each consisted of a number of jobs. We denote by $T_i(n)$ the arrival time of the $n$-th burst, which must be finished within $t_i(n)$. Therefore, its $n$-th burst needs to be completed by $T_i(n)+t_i(n)$ (i.e., deadline).
+Denote the demand of its $n$-th arrival by a vector $\myvec{d_i}(n)=\langle d^1_i(n), d^2_i(n), ..., d^K_i(n)\rangle$, where $d^k_i(n)$ is the demand on resource-$k$.
+
+In practice, inter-arrival time between consecutive bursts $T_i(n+1)-T_i(n)$ can be fixed for some applications such as Spark Streaming \cite{spark-streaming}, or it may vary for interactive user sessions. In general, the duration is quite short, e.g., several minutes. 
+Similarly, the demand vector $\myvec{d_i}(n)$ may contain some uncertainties, and we assume that queues have their own estimations. Therefore, our approach has to be strategyproof so that queues report their estimated demand, %Actually, a stochastic optimization problem can be solved by each {\burstq}-$i$ to decide the vector it wants to report. 
+%We take a progressive approach: first, we focus on the case with fixed arrival times and known demand vectors for a simpler solution; then, we enhance that solution to handle the uncertainties.
+as well as their true deadlines. 
+
+%Recall that the performance metric of the {\burstq}s is the average completion time of jobs during each ON period. Therefore, each {\burstq} requests the resource demand $\myvec{d_i}(n)$ for a duration that equals to the length of its ON period $t_i(n)$. 
+
+To enforce the long-term fairness, the total demand of {\burstq}-$i$'s $n$-th arrival $\myvec{d_i}(n)$ should not exceed its fair share, which can be calculated by a simple fair scheduler -- i.e., $\frac{\myvec{C}(T_i(n+1)-T_i(n))}{N}$, when there are $N$ queues admitted by {\name} -- or a more complicated one such as DRF. We adopt the former in analysis because it provides a more conservative evaluation of the improvements brought by {\name}. 
+% , which is a long-term metric that cannot be satisfied by existing schedulers.
+%In particular, traditional fair schedulers such as DRF provides a fixed amount of \emph{guaranteed} resource depending only on the number of tenants in the system. 
+%DRF takes into consideration the different demand profiles of tenants to improve progress, while focusing on instantaneous fairness. 
+% and throughput.
+
+%To enable long-term performance guarantees, {\burstq}-$i$ provides the system operator a requested a service rate $\myvec{\alpha_i}(n)$ for a duration $t_i(n)$ for each of her arrivals. 
+%Note that this is stronger than requesting simply the total amount $\myvec{\alpha_i}(n)*t_i(n)$. 
+%If the system operator admits {\burstq}-$i$, the requested rate and duration will be granted, so {\burstq}-$i$ can have better performance.
+
+In contrast, {{\batchq}}s' jobs are queued at the beginning with much larger demand than each burst of {\burstq}s. %In contrast to {\burstq}s who wish to finish each burst as quickly as possible in each ON/OFF period lasting for several minutes, {{\batchq}}s only care about the resources received in the long term, e.g., hours.
+
+%and the total demand is $\myvec{b_j} = \langle b^1_j, b^2_j, ..., b^K_j\rangle$.
+%We assume this demand vector is known, but our solution can be applied to the estimated demand vectors with minor changes. 
+%She requests the normalized resource profile $\frac{\myvec{b_j}}{\max_k\left\{b^k_j\right\}}$ accordingly. 
+%In contrast to {\burstq} tenants, {\batchq} tenants only care about long-term fairness and average completion times.
+
+\begin{table}[!t]
+\small
+\centering
+\begin{tabular}{|c|l|} \hline
+Notation & Description \\ \hline \hline
+%$\mathbb{A}$ & Admitted {\burstq}s \\ \hline
+%$\mathbb{B}$ & Admitted {\batchq}s \\ \hline 
+$\mathbb{H}$ & Admitted {\burstq}s with hard guarantee \\ \hline
+$\mathbb{S}$ & Admitted {\burstq}s with soft guarantee \\ \hline
+$\mathbb{E}$ & Admitted {\batchq}s and {\burstq}s with fair share only \\ \hline
+\hline\end{tabular}
+\caption{Important notations} 
+\vspace{-0.3cm}
+\label{tbl:notations}
+\end{table}
+
+\subsection{Modeling the Problem}
+\label{sec:properties}
+%\mosharaf{Rename? this subsection because 3.4 is also about properties?} %\nhattan{Optimization Problem Formulation?}
+\paragraph{Completion time:}
+Let us denote by $R_i(n)$ the (last) completion time of jobs during {\burstq}-$i$'s $n$-th arrival. If {\burstq}-$i$ is admitted with \emph{hard} guarantee, we ensure that a large fraction ($\alpha_i$)\footnote{$\alpha_i$ can be 95\% or 99\% depending on the SLAs} of arrivals are completed before deadlines, i.e., $\sum_{n\in N_i}\mathbf{1}_{\left\{R_i(n)\leq T_i(n)+t_i(n)\right\}} \geq \alpha_i|N_i|$, where $\mathbf{1}_{\left\{\cdot\right\}}$ is the indicator function which equals to 1 if the condition is satisfied and 0 otherwise, $|N_i|$ is the number of arrivals of {\burstq}-$i$. 
+If {\burstq}-$i$ is admitted with only \emph{soft/best-effort} guarantee, we maximize the fraction of arrivals completed on time.
+
+\paragraph{Long-term fairness:}
+Denote by $\myvec{a_i}(t)$ and $\myvec{e_j}(t)$ the resources allocated for {\burstq}-$i$ and {\batchq}-$j$ at time $t$, respectively.
+For a possibly long evaluation interval $[t, t+T]$ during which there is no new admission or exit, the average resource guarantees received are calculated as $\frac{1}{T}\int_t^{t+T} \myvec{a_i}(\tau)\text{d}\tau$ and $\frac{1}{T}\int_t^{t+T} \myvec{e_j}(\tau)\text{d}\tau$.
+We require the allocated dominant resource, i.e., the largest amount of resource allocated across all resource types, received by any {\batchq} queue is no smaller than that received by an {\burstq}. Formally, $\forall i\in\mathbb{A}, \forall j\in\mathbb{B}$, where $\mathbb{A}$ and $\mathbb{B}$ is the set of admitted {\burstq}s and {\batchq}s, respectively, 
+\begin{small}$\max_{k}\left\{\frac{1}{T}\int_t^{t+T} a_i^k(\tau)\text{d}\tau\right\}\leq\max_{k}\left\{\frac{1}{T}\int_t^{t+T} e_j^k(\tau)\text{d}\tau\right\}$\end{small}, 
+where $a_i^k(\tau)$ and $e_j^k(\tau)$ are allocated type-$k$ resources for {\burstq}-$i$ and {\batchq}-$j$ at time $\tau$, respectively.
+This condition provides long-term protections for admitted {\batchq}s.
+
+%\subsubsection*{System utilization and \burstq utilization}
+%
+%At any time $\tau$, denote by $\myvec{f_i}(\tau)$ and $\myvec{g_j}(\tau)$ the resource consumed by {\burstq}-$i$ and {\batchq}-$j$, respectively. 
+%Over the evaluation interval $[t,t+T]$, the average system utilization for all resources can be calculated as follows:
+%$$\frac{1}{KT}\sum_k\int_t^{t+T}\frac{\sum_{i\in\mathbb{A}}f_i^k(\tau)+\sum_{i\in\mathbb{B}}g_j^k(\tau)}{C^k}\text{d}\tau, $$
+%where $f_i^k(\tau)$ and $g_j^k(\tau)$ are allocated type-$k$ resource for {\burstq}-$i$ and {\batchq}-$j$ at time $\tau$, respectively.
+%The \burstq utilization is simply the part consumed by {\burstq}s with guarantees $$\frac{1}{KT}\sum_k\int_t^{t+T}\frac{\sum_{i\in\mathbb{H}\cup\mathbb{S}}f_i^k(\tau)}{C^k}\text{d}\tau. $$
+
+\paragraph{The optimization problem:}
+
+We would like to maximize the arrivals completed before the deadlines for admitted {\burstq}s with soft guarantee while meeting the specified fraction of deadlines of admitted {\burstq}s with hard guarantees and keeping the long-term fairness.
+%The problem can be expressed as follows:
+%\begin{align}
+%  \label{eqn:opt}
+%  \begin{aligned}
+%    & \min & & \frac{1}{|\mathbb{S}|}\sum_{i\in\mathbb{S}}\left(\frac{1}{N_i}\sum_{n=1}^{N_i}R_i(n)\right)\\
+%    & \max & & \frac{1}{KT}\sum_k\int_t^{t+T}\frac{\sum_{i\in\mathbb{A}}f_i^k(\tau)+\sum_{i\in\mathbb{B}}g_j^k(\tau)}{C^k}\text{d}\tau\\
+%    & \max & & \frac{1}{KT}\sum_k\int_t^{t+T}\frac{\sum_{i\in\mathbb{H}\cup\mathbb{S}}f_i^k(\tau)}{C^k}\text{d}\tau\\
+%    & \text{s.t.} & & R_i(n)\leq T_i(n)+t_i(n), \forall n, \forall i\in\mathbb{H}\\
+%    & & & \max_{k}\left\{\frac{1}{T}\int_t^{t+T} a_i^k(\tau)\text{d}\tau\right\}\leq\\
+%    & & & \max_{k}\left\{\frac{1}{T}\int_t^{t+T} e_j^k(\tau)\text{d}\tau\right\}, \forall i\in\mathbb{A}, \forall j\in\mathbb{B}
+%  \end{aligned}
+%\end{align}
+
+The decisions to be made are (i) admission control, which decides the set of admitted {\burstq}s ($\mathbb{H}$, $\mathbb{S}$) and the set of admitted {\batchq}s ($\mathbb{E}$); and (ii) resources allocated to admitted queues {\burstq}-$i$ and {\batchq}-$j$ ($\myvec{a_i}(t)$ and $\myvec{e_j}(t)$, respectively) over time. 
+%The resource consumptions ($\myvec{f_i}(t)$ and $\myvec{g_j}(t)$) are different from resource allocations ($\myvec{a_i}(t)$ and $\myvec{e_j}(t)$) because some queues cannot use up the allocated resource, and 
+If there are some unused/unallocated resources, queues with unsatisfied demand can share them.%, in addition to their allocated resources. 
+%\burstq completion time $R_i(n)$ is some non-increasing function of resource consumption $\myvec{f_i}(t)$, i.e., more resources reduce completion time. 
+
+%\input{scripts/approach_old}
+\input{scripts/solution_approach}
+
+\input{scripts/BPF-properties}
+
+\input{scripts/BPF-uncertainties}

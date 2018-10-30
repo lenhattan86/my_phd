@@ -1,0 +1,115 @@
+
+
+\subsection{The importance of admission control}
+
+As the nature of Yarn, it will allocate the containers based on the demand of the applications. We can show that it wastes the resource when running the applications like Flink without using admission control.
+
+\begin{itemize}
+	\item Measure the resource usage of running the 5 Flink applications on 5 queues. The total resource demand must be larger than the cluster resource.
+	\item Run the experiment on both Yarn and our scheduling policy to see the importance of admission control.
+\end{itemize}
+
+Expected results: Flink applications on Yarn use more resources than our approach because some Flink applications on Yarn cannot run but still hold some resource.
+
+\subsection{The performance of interactive applications and flexible applications}
+
+Experiment setup: We run the interactive applications consequently on a queue, and increase the number of flexible applications on other queues.
+
+Expected results: We show that the performance of interactive applications is guaranteed (because of the minimum resource requirement) not mater how many other flexible applications are running. Meanwhile, the performance of flexible applications are not negatively affected.
+
+The most popular technique used at present to ensure fairness among
+multiple applications is the enforcement of \textit{dominant resource fairness} (DRF) \cite{drf} at any instant in time. However, instantaneous DRF is
+\textit{memoryless}: if an application uses resources in bursts,
+it is not treated any differently than an application that uses
+resources throughout its execution without any idle periods. Concretely,
+bursty applications are not fairly compensated for the idle periods in
+which they do not use resources on the cluster.
+
+To illustrate this, we simulate the behavior of data scientist Alice
+interested in computing the value of $\pi$ using a Monte Carlo algorithm
+on a cluster running Spark with YARN as the resource manager. Alice
+opens a Spark Shell and periodically (every 120 seconds) runs an
+application that is assigned to an \texttt{interactive} YARN queue.
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/alice-cpu-isolated.pdf}
+		\caption{Alice's allocated CPUs.}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/alice-memory-isolated.pdf}
+		\caption{Alice's allocated memory.}
+	\end{subfigure}
+	\caption{It is not fair for the Alice.}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/alice-cpu-isolated.pdf}
+		\caption{Alice's allocated CPUs.}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/alice-memory-isolated.pdf}
+		\caption{Alice's allocated memory.}
+	\end{subfigure}
+	\caption{Alice's allocation when running in isolation}
+	\label{fig:alice-allocations-isolated}
+\end{figure}
+
+When run in isolation, the CPU and memory allocation profiles for 4 of
+Alice's applications are illustrated above. Each application takes
+$52.25 \pm 0.43$ seconds to complete (averaged over the 4 applications),
+leaving the queue idle for approximately 67.75 seconds each time until
+the next application submission.
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/alice-cpu.pdf}
+		\caption{Alice's allocated CPUs.}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/alice-memory.pdf}
+		\caption{Alice's allocated memory.}
+	\end{subfigure}
+	\caption{Alice's allocation with applications running in the
+		\texttt{batch} queue.}
+	\label{fig:alice-allocations}
+\end{figure}
+
+Now consider the cluster also hosting a long-running application
+submitted by another user that is assigned to a \texttt{batch}
+YARN queue. When executing in conjunction with this application,
+the CPU and memory allocation profiles for Alice's applications are
+illustrated above. The average completion time of Alice's applications
+increases to $60.75 \pm 1.48$ seconds, due to its applications now
+being allocated only up to 50\% of the cluster resources.
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/batch-cpu.pdf}
+		\caption{\texttt{batch} queue's allocated CPU.}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=\textwidth]{fig/batch-memory.pdf}
+		\caption{\texttt{batch} queue's allocated memory.}
+	\end{subfigure}
+	\caption{The \texttt{batch} queue's allocation when running
+		along with Alice's applications.}
+	\label{fig:batch-allocations}
+\end{figure}
+
+The CPU and memory allocation profiles for the \texttt{batch} queue are
+illustrated above. Visually comparing the area under the resource
+curves with those for Alice's applications clearly indicates that the
+\texttt{batch} queue has been allocated a lot more resources during
+the course of the simulation timeline, in spite of the
+applications in this queue having no idle periods wherein they
+release resources back to the cluster!
+
+Unfairness of this form can result from any allocation mechanism that
+is memoryless, such as instantaneous DRF employed by YARN described
+in the experiment above.

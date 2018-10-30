@@ -1,0 +1,29 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Bursty Applications in Big Data Clusters}
+Big data clusters experience burstiness from a variety of sources, including periodic jobs \cite{jockey, rope, scarlett, omega}, interactive user sessions \cite{splunk-analysis}, as well as streaming applications \cite{spark-streaming, millwheel, trident}. 
+Some of them show predictability in terms of inter-arrival times between successive jobs (\eg, Spark Streaming \cite{spark-streaming} runs periodic mini batches in regular intervals), while some others follow different arrival processes (\eg, user interactions with large datasets \cite{splunk-analysis}).
+Similarly, resource requirements of the successive jobs can sometimes be predictable, but often it can be difficult to predict due to external load variations (\eg, time-of-day or similar patterns); the latter, without {\name}, can inadvertently hurt batch queues (\S\ref{sec:motivation}). 
+
+\paragraph{Multi-Resource Job Schedulers}
+Although early jobs schedulers dealt with a single resource \cite{late, mantri, quincy}, modern cluster resource managers, \eg, Mesos \cite{mesos}, YARN \cite{yarn}, and others \cite{omega, borg, cosmos}, employ multi-resource schedulers \cite{drf, sjf, tetris, carbyne, apollo, mercury, hdrf} to handle multiple resources and optimize diverse objectives. 
+These objectives can be fairness (\eg, DRF \cite{drf}), performance (\eg, shortest-job-first (SJF) \cite{sjf}), efficiency (\eg, Tetris \cite{tetris}), or different combinations of the three (\eg, Carbyne \cite{carbyne}).
+% 
+However, \emph{all} of these focus on instantaneous objectives, with instantaneous fairness being the most common goal. 
+To the best of our knowledge, {\name} is the first multi-resource job scheduler with long-term memory.
+
+\paragraph{Handling Burstiness}
+Supporting multiple classes of traffic is a classic networking problem that, over the years, have arisen in local area networks \cite{cbq, intserv-hierarchy, hfsc, diffserv-rfc2475}, wide area networks \cite{bwe, b4, swan}, and in datacenter networks \cite{silo, qjump}. 
+All of them employ some form of admission control to provide quality-of-service guarantees.
+They also consider only a single link (\ie, a single resource). 
+In contrast, {\name} considers multi-resource jobs and builds on top this large body of existing literature.
+
+BVT \cite{bvt} was designed to work with both real-time and best-effort tasks. Although it prioritizes the real-time tasks, it cannot guarantee performance and fairness.
+
+\paragraph{Expressing Burstiness Requirements}
+{\name} is not the first system that allows users to express their time-varying resource requirements. 
+Similar challenges have appeared in traditional networks \cite{hfsc}, network calculus \cite{cruz1, cruz2}, datacenters \cite{silo, pulsar}, and wide-area networks \cite{bwe}.
+Akin to them, {\name} requires users to explicitly provide their burst durations and sizes; {\name} tries to enforce those requirements in short and long terms. 
+Unlike them, however, {\name} explores how to allow users to express their requirements in a multi-dimensional space, where each dimension corresponds to individual resources. 
+One possible way to collapse the multi-dimensional interface to a single dimension is using the notion of \emph{progress} \cite{hug, drf}; however, progress only applies to scenarios when a user's utility can be captured using Leontief preferences. 

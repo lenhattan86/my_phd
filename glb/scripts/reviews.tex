@@ -1,0 +1,87 @@
+\section{Reviews by SIGMETRICS'16}
+
+\subsection{Review 1}
+This paper proposes two algorithms for cloud providers to optimally purchasing electricity from real-time market and long-term market to minimize their energy cost as well as the delay cost for workload execution over multiple geo-distributed data centers. The first algorithm provides provably optimal cost minimization, while the other achieves near-optimal cost at a much lower computational cost. The authors also analyze long-term prediction errors using real-world traces and empirically evaluate the benefits of proposed algorithms. The model is presented clearly and is easy to follow.
+\begin{enumerate}
+	\item It is not clear how the simplification in theoretical analysis by assuming power consumption $d_i^r$ equals the number of machines can be applied to linear power consumption model. If the linear power consumption model is referring to the linear power consumption increase on a single machine with the increase of workload, $d_i^r$ is still related to the workload, instead of independent. \nhattan{present righ-sizing techniques.}
+	
+	\item  The model assumes that the provider can assign a workload to any data center. It will be more meaningful to consider different preferences of running a workload in different data centres. \nhattan{This comment is interesting but it is out of the paper scope.}
+	
+	\item The technical contribution in algorithm design is limited: PA is a deterministic convex optimization problem; SGA is a direct application of the stochastic approximation theory. \nhattan{A new algorithm is meaningless if the PA algorithm stills achieve a very good performance.}
+	
+	\item The setup of some parameters in the simulations can be improved. For example, instead of a fixed $\beta=1$, different values can be used to test the different trade-off level between energy and delay cost. And the same for the forward prices $p_i^l$. \nhattan{If there is space, then yes.}
+	
+	\item A typo is spotted in the abstract: ``futures market'' \nhattan{fixed.}
+	
+	\item A notation table should be provided for easiness of reference. \nhattan{If there is space, then yes.}
+\end{enumerate}
+
+
+\subsection{Review 2}
+
+This paper presents the first study of optimal electricity procurement strategies for geo-distributed datacenters in multi-time-scale markets, with a stronger focus on long-term markets.  The specific contributions are: (1) algorithms for datacenter operators to procure electricity in multi-time-scale markets; (2) an analysis of the long-term predictability of renewables (solar and wind), workloads, and electricity prices; and (3) an evaluation of the two algorithms compared to several other procurement approaches.
+
+\begin{enumerate}
+	\item This paper is interesting and I give credit for being the first to address an important problem in an optimal way.  Though I don't have the background to check the math carefully, the paper read very reasonable and the results seem good. The paper also makes a few assumptions that are unrealistic for current datacenters (e.g., servers being turned on/off dynamically, workload that can go to any datacenter), but these are common in the academic literature.  
+	\item The most interesting part IMO was the predictability analysis, although prior papers have considered this problem (perhaps in the shorter term).  What I still don't quite understand is how the prediction-based algorithm did well given the large errors you show in Figure 4.  In addition, the text claims that the errors in the PV and wind long-term predictions are zero-mean.  Judging by Fig. 5, I don't see how this can be.  Please clarify the presentation so these questions are answered. \nhattan{Need to find out the reasons.}
+\end{enumerate}
+
+\subsection{Review 3}
+
+This paper considers a model where energy can be purchased in advance at one price (future) and at real-time at a second higher price (spot).  Given a set of data centers with some a priori knowledge of workload distribution, an optimal algorithm is designed to determine how much energy to buy in advance.  The algorithm utilizes stochastic gradient descent.  A more approximate algorithm is proposed that optimizes according to an average case analysis.
+
+The environment in which the algorithms are to be applied is also studied with respect to the ability to predict the spot price.  Convergence speed of the SGA algorithm and performance are measured as a function of cost.
+
+I have mixed feelings about this paper.  On the plus side, the model seems quite novel, and I like the idea of trying to predict the right amount of energy to buy up front, while then spending what is necessary to cover the actual demand.  
+
+On the downside, there were a few aspects of the paper I found lacking:
+
+\begin{enumerate}
+	\item The definition of $\beta$: this seems to oversimplify the utility of delay, i.e., that a linear increase in delay yields a linear increase in ''cost``.  One would expect that any delay below a certain threshold has no increase in cost, and then additional delay might increase costs super-linearly. \nhattan{Agree, but how to measure the delay cost? What if we put delay as the constraint?.}
+	
+	\item The combining of workload delay with network delay was unappealing.  Workload delay says something about how long it takes to complete the process given the load on the server.  Network delay comes from what?  Propagation delay?  Is this really substantial compared to workload delay?  Is it a function of the size of the output (e.g., where TCP speed might matter as opposed to propagation delay).  The $\pi_{i,j}$ certainly have the feel of simply being thrown in, but not really considered. \nhattan{Add some argument and refer to the sources.}
+	
+	\item The proposed algorithms are hybrid offline/online. Rather than plot actual cost as a measure, it would be interesting to compare cost to an oracle who would know subsequent loads and be able to support them all with futures. \nhattan{He missed the result of OA.}
+	
+	\item  The problem considers only a single spot purchase time at $t=0$, and claims in the intro that the results are easily extended to multiple spot purchase iterations.  I guess I had a hard time grasping how easy it really is to generalize: e.g., what if there are futures prices for different time periods?  Is it still easily generalizable? \nhattan{Agree with the comment.}
+	
+	\item  some typos need fixing, and some definitions could be made more explicit:
+	\item  $-T_l$ is never really defined clearly (when re-reading it's def is clear but when I first saw it I was confused)
+	\item definition of $m_i$ is confusing (sentence needs reworking)
+	\item $\pi_{ij}$: took me a while to make the association to this being the ''second term``. \nhattan{Will be in the todo list.}
+\end{enumerate}
+
+\subsection{Review 4}
+
+The paper considers an electricity futures market in the context of geo-distributed data centers.  Two algorithms are proposed (one with high cost but optimal cost characteristics in the context of described model, the other is more efficient).  Simulation-based evaluations are presented to illustrate the benefits of the proposed algorithms.
+
+This is an important area, and the paper needs to consider several complex problems in this context, related to (a) characterizing performance (in the form of delay), (b) characterizing energy use, and (c) prediction of prices, workloads, etc.
+
+There are several concerns about the simplicity of the models/techniques:
+
+\begin{enumerate}
+	\item characterization of delay is based on a simplistic model of what would influence response time (or delay) of jobs in a geo-distributed data center environment (the model used is essentially m/m/1 type). \nhattan{Any other model can we use?}
+	
+	\item  the combination of delay and cost (using a parameter) is difficult to explain; not sure how to interpret combining these; not sure how to set beta, etc. \nhattan{It is still acceptable if we do not change the objective function.}
+	
+	\item energy management in these environments seems to be more complex (given the existing literature) than just turning servers on and off (and the servers aren't even treated as discrete?) ... would be good to say why other forms of energy management aren't useful/included or would it be possible to include them? \nhattan{Added reference for right-sizing.}
+	
+	\item qualify of the prediction is difficult evaluate; workload prediction seems much more complex than what is considered here
+	
+	\item  it's not clear why the baseline used for comparisons in the evaluation part is considered to be the "traditional approach" ... it appears something that is constructed in this paper, rather than in the existing literature? \nhattan{Replace the traditional approach with baseline methods.}
+\end{enumerate}
+
+Given concerns about the above mentioned simplifications, it's difficult to interpret how significant the results are.
+
+\subsection{Review 5}
+
+The paper considers an electricity management problem for geo-distributed data centers. The problem is formulated into a two-stage optimization problem, with objective being a linear combination of energy cost and approximate delay. Two algorithms are proposed, the prediction-based algorithm and the stochastic gradient based algorithm. Simulations are conducted to evaluate the solutions.
+
+The problem in consideration is important and the predictability analysis is interesting. The solutions also seem to be effective. However, there are several concerns about the paper. 
+
+\begin{enumerate}
+	\item The formulation appears to be similar to previous works and does not show significant novelty. In particular, the combination of delay and cost is used in [24], and the two-stage energy procurement is also quite commonly considered in the energy area. \nhattan{Agree.}
+	\item The prediction technique does not seem very novel. The autoregressive method seems quite standard and its novelty should be further discussed. \nhattan{Agree.}
+	\item The algorithms proposed appear standard and are not very novel. PA is essentially replacing randomness values by their means, while SGA is a standard algorithm. \nhattan{Agree.}
+	\item Also, the simulation evaluation is a bit limited. No existing benchmarks are compared except for a few alternatives proposed by the authors. \nhattan{There is no benchmark to compare with}.
+\end{enumerate}

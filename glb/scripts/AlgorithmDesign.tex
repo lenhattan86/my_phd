@@ -1,0 +1,170 @@
+\section{Algorithm Design}
+\label{sec:AlgorithmDesign}
+
+The energy procurement system needs algorithms for both energy
+procurement in long-term (EP-LT) and geographical load balancing in
+real-time (GLB-RT). GLB-RT is a convex optimization problem that can
+be solved efficiently in real-time by standard techniques
+\cite{liu2011greening}. Thus, we focus on designing algorithms for
+energy procurement in the long-term markets. Note that even though
+EP-LT is a convex optimization (see
+Theorem~\ref{theorem:LT-Convexity}), neither the objective function
+nor its gradient admit a closed-form representation, which presents significant challenges. 
+
+In this section,
+we design two algorithms, namely, Prediction based Algorithm (PA) and
+Stochastic Gradient estimate based Algorithm (SGA) for solving EP-LT.
+PA is a heuristic algorithm that requires only the predicted values of renewable generations, workload, and
+electricity prices. 
+On the other hand, SGA comes with a convergence
+guarantee, but requires \emph{samples} from the joint distribution of
+renewable generations, workload, and electricity prices. As a result,
+SGA can be solved in a \emph{data-driven} manner.
+
+\subsection{Prediction based Algorithm (PA)}
+\label{sec:PA}
+
+Prediction based algorithm (PA) relies on the mean
+values of renewable generation, workload, and electricity
+price. 
+% However, obtaining the mean values requires the knowledge of the
+% distribution of renewable generation, workload, and electricity
+% price.
+Fortunately, our data analysis reveals that our prediction errors for
+these quantities are approximately zero mean.
+%Even though prediction errors are biased, we can simply
+%adjust the prediction methods to eliminate the bias. 
+%% JK: this contradicts the previous statement.
+Thus, the predicted values $\hat{L}^r_j$, $\hat{w}^r_i$, and
+$\hat{p}^r_i$ are good estimates of the mean values of renewable
+generation, workload, and electricity price.
+
+PA computes the long-term procurement $\Vector{q}^l$ by solving EP-LT
+and GLB-RT at the same time, with the random variables $w^r_i$,
+$L^r_j$, and $p^r_i$ replaced by their predicted values. Formally, this is done by solving the following deterministic convex optimization problem.
+\begin{subequations}
+	\begin{align*}
+	\text{LT-PA: } & \min_{\mathbf{m}, \Vector{\lambda}, \mathbf{q}^l} \sum_{i=1}^{N} p^l_i q^l_i + \sum_{i=1}^{N} \hat{p}^r_i [m_i - \hat{w}^r_i - q^l_i]_+ \nonumber \\
+	&  + \beta  \sum_{i}^{}\sum_{j}^{}h_{ij}(m_i, \lambda_{ij}) \\
+	\mbox{subject to } \nonumber \\
+	&\text{Constraints \eqref{eq:GLB-RT_c1}, \eqref{eq:GLB-RT_c}--\eqref{eq:GLB-RT_c2}} \\
+        &\sum_{i\in N}^{} \lambda_{ij} = \hat{L}^r_j \quad \forall j \in J \\
+	&q^l_i \geq 0 \textbf{   } \forall i \in N
+	\end{align*}
+\end{subequations}
+The objective function of LT-PA is similar to that of the EP-LT
+without the expectation operation. The constraints over $\Vector{m}$,
+$\Vector{\lambda}$, and $\Vector{q}^l$ of LT-PA are identical to those
+of GLB-RT and EP-LT. LT-PA is a convex
+optimization problem and can be solved efficiently by standard
+techniques \cite{boyd2004convex}. 
+%% JK -- Removing the adjective `deterministic' from the optimization
+%% problem. Note that all our optimizations are determinstic.
+Even though PA is a heuristic, our experimental evaluations reveal
+that it provides a near-optimal solution in realistic scenarios; see
+Section~\ref{sec:caseStudy}.
+
+
+
+\subsection{Stochastic Gradient-based Algorithm (SGA)}
+
+Although PA can offer a quick heurictic decision, it is desirable to
+have an algorithm that optimally procures electricity in long-term
+markets. To this end, we exploit the gradient characterization of the
+long-term objective (see Theorem~\ref{theorem:lt_gradient}) to design
+a stochastic gradient descent algorithm. The algorithm, namely, SGA,
+is summarized in Algorithm \ref{alg:sgea}. The main idea of the
+algorithm is to compute a noisy estimate of the gradient of the
+long-term objective by averaging the gradient of the (random) total
+cost over a finite number of sample paths.
+% derived based on results in Section~\ref{sec:dataAnalysis}. 
+This noisy gradient is used to perform a stochastic gradient
+descent. Stochastic approximation theory can then be used to prove
+convergence to the set of optimal solutions, as long as the step-size
+sequence is appropriately diminishing \cite{Kushner03}.
+
+%There are two challenges when designing this type of algorithms. First, we have to compute the stochastic gradient of the long-term objective function, which usually does not have a closed form. Fortunately, Theorem \ref{theorem:lt_gradient} provides us the way to compute the stochastic gradient of long term objective. Second, the sequence of step sizes $\{\eta_{\tau}\}_{1 \leq \tau \leq T}$ have to be well designed for the algorithm to converge. $\{\eta_{\tau}\}_{1 \leq \tau \leq T}$ are generated such that $\sum_{ \tau=1 }^{T} \eta _{\tau}= \infty $ and $\sum_{\tau=1}^{T} \eta ^2_{\tau}= \infty $.
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\begin{algorithm}
+	\caption{Stochastic Gradient based Algorithm (SGA).}
+	\label{alg:sgea}
+	\begin{algorithmic}
+		\REQUIRE Obtain $\Vector{p}^l$ from the $|N|$ long-term electricity markets. \\
+		Prepare $\mathbb{S}$ samples of $(\Vector{w}^r,\Vector{L}^r,\Vector{p}^r)$ based on prediction error distributions.
+		\ENSURE $q^l_i$ $\forall i \in N$
+		\STATE \textit{Initialize:} $q^l_i = {0}$, $\forall i \in N$. 
+		\STATE \textit{Step:} $\tau=1$.
+		% % \WHILE{$\tau \leq T$}
+		\WHILE{true}    
+		\FORALL {$k$ such that $1 \leq k \leq \mathbb{S}$}
+		\STATE \textit{Solve:} GLB-RT for $k$th sample of $(\Vector{w}^r,\Vector{L}^r,\Vector{p}^r)$ with long-term procurement $\Vector{q}^l$
+		\STATE \textit{Obtain:} The Lagrange multipliers $\varrho_i^{(k)}$ corresponding to constraint \eqref{eq:GLB-RT_c3}, $\forall i \in N$
+		\ENDFOR    
+		\STATE \textit{Compute:} $\hat{\varrho}_i = \frac{1}{\mathbb{S}} \sum_{k = 1}^{\mathbb{S}} \varrho_i^{(k)}$, $\forall i \in N$
+		\STATE \textit{Update:} $q^l_i = [q^l_i - \eta_{\tau} (p^l_i - \hat{\varrho}_i)]_{[0,M_i]}$ for $\forall i \in N$. $[z]_{[0,M_i]}$ indicates the projection of $z$ onto
+                the set $[0,M_i].$ \STATE \textit{Increase}:
+                $\tau=\tau+1$.
+		\ENDWHILE
+	\end{algorithmic}
+\end{algorithm}
+
+% Intuitively, assuming the gradient estimation is accurate enough,
+% the algorithm is moving along the direction close to the steepest
+% decent one. Therefore, the objective function of EP-LT decreases and
+% the gradient $p^l_i-\hat{\varrho}_i$ becomes smaller. Eventually,
+% $p^l_i-\hat{\varrho}_i$ approaches 0, and $q^l_i$ converges yielding
+% one optimal solution.
+%% JK -- I think the explanation preceding the algorothm is
+%% sufficient.
+
+We prove that SGA converges to the set of optimal solutions of
+EP-LT under the following standard assumption on the step-size
+sequence.
+\begin{assumption}
+	\label{ass:stepsize}
+	$\sum_{\tau = 1}^{\infty}(\eta_{\tau}) = \infty $ and
+        $\sum_{\tau = 1}^{\infty}(\eta_{\tau})^2 < \infty$.
+\end{assumption}
+The convergence of SGA is asserted by the following theorem.
+\begin{theorem}
+	\label{thm:sgea}
+	Under Assumption~\ref{ass:stepsize}, almost surely, the iterates
+	$\Vector{q}^l$ generated by SGA converge to the set of optimal
+	solutions of EP-LT as $\tau \ra \infty.$
+\end{theorem}
+We give the proof of Theorem~\ref{thm:sgea} in
+Appendix~\reference{sec:conv-proof}.
+
+
+\ignore{ The algorithm first receives electricity price
+  $\Vector{p}^l_i$ from long-term markets. It generates all the
+  samples of renewable generation, workload, and electricity prices at
+  real-time markets from predicted values and prediction error
+  distributions as \eqref{eq:predictionErrors}. In the beginning, SGA
+  starts with a feasible solution, e.g. $q^l_i=0$. Then, the algorithm
+  takes $T$ iterations to approach closer the optimal
+  solution. Theoretically, a solution closer to the optimal solution
+  can be obtained from using a larger $T$. In practice, $T$ depends on
+  the acceptable computational time and the expected accuracy. In each
+  iteration $t$, SGA estimates the gradient $\nabla_{q^l_i}(t)$ and
+  updates the solution by using
+	$$q^l_i(t) = [q^l_i(t-1) - \eta_t \hat{\nabla}_{q^l_i}(t)]_+$$ where $\eta_t$ is the step size such that  And, $[\cdot]_+$ projects $q^l_i(t)$ to the feasible domain.}
+
+      Note that SGA requires samples from the joint distribution of
+      $(\Vector{w}^r,\Vector{L}^r,\Vector{p}^r).$ This means that SGA
+      can be solved in an entirely data-driven manner, without needing
+      to actually model the distributions of workload, renewable
+      generation, and electricity price, or the complex
+      inter-dependencies between these quantities. This makes it
+      particularly suitable in today's `big-data' era. The bottleneck
+      of SGA is the computation of the noisy gradient estimate, which
+      involves solving $\mathbb{S}$ instances of GLB-RT. Moreover, the
+      diminishing step-size sequence implies that SGA requires a large
+      number of iterations to compute a near-optimal
+      solution. However, it is important to note that since this
+      algorithm is only used for long-term procurement, its
+      computation time would not be a bottleneck in practice.
+
+

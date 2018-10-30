@@ -1,0 +1,111 @@
+\section{\diff{Characterizing the Optima}}
+\label{sec:characterizingOptima}
+
+In this section, we collect useful properties of the optimizations
+EP-LT and GLB-RT. These are important for understanding the behavior
+of the energy procurement system, and also for proving convergence of
+the stochastic gradient algorithm for EP-LT in
+Section~\ref{sec:AlgorithmDesign}.
+
+
+%\subsection{Characterizations of EP-LT}
+
+\label{sec:char_ep-lt}
+
+Our first result is that EP-LT is indeed a convex optimization, which
+suggests that EP-LT is a tractable optimization.
+
+% One may worry that EP-LT may not be convex, which results in hardly
+% finding the global optimal solution in multidimensional search
+% space. We claim that EP-LT is surprisingly convex as
+
+\begin{theorem}
+	\label{theorem:LT-Convexity}
+	$F^l(\textbf{q}^l)$ is convex over $\textbf{q}^l \in \mathbb{R}^N_+.$
+\end{theorem}
+We provide the proof of Theorem~\ref{theorem:LT-Convexity} in Appendix~\reference{proof:convexity}{A.1 of our technical report \cite{le2016SoCCTechnicalReport}}. Next, we characterize the gradient of the EP-LT objective function as
+follows.
+
+\begin{theorem}
+	\label{theorem:lt_gradient}
+	The gradient of $F^l(\cdot)$ is characterised as follows.
+	\begin{align*}
+	\frac{\partial F^l(\textbf{q}^l)} {\partial q^l_i} &= p^l_i +
+	\mathbb{E} \bigg[ \frac{\partial F^{*r}(\textbf{q}^l,\textbf{p}^r,\textbf{L}^r,\textbf{w}^r)}  {\partial q^l_i} \bigg] \\
+	&=p^l_i -\mathbb{E}
+	\left[\varrho_i(\textbf{q}^l,\textbf{p}^r,\textbf{L}^r,\textbf{w}^r)
+	\right],
+	\end{align*}    
+	where $\varrho_i(\textbf{q}^l,\textbf{p}^r,\textbf{L}^r,\textbf{w}^r)$
+	is the unique Lagrange multiplier of GLB-RT corresponding to the
+	constraint \eqref{eq:GLB-RT_c3}.
+\end{theorem}
+
+
+Note that the first equality in the theorem statement asserts that the
+order of an expectation and a partial derivative can be
+interchanged. The second equality relates the partial derivative of
+$F^{*r}$ with respect to $q^l_i$ to a certain Lagrange multiplier of
+GLB-RT. We provide the proof of Theorem~\ref{theorem:lt_gradient} in
+Appendix~\reference{proof:lt_grad}{A.2 of our technical report \cite{le2016SoCCTechnicalReport}}.
+
+We note that Theorem~\ref{theorem:lt_gradient} does not enable us to
+compute the gradient of the $F^l(\cdot)$ exactly. Indeed, the
+expectation of the Lagrange multiplier $\varrho_i$ with respect to
+$(\Vector{p}^r,\Vector{L}^r,\Vector{w}^r)$ would in general be
+analytically intractable. However, Theorem~\ref{theorem:lt_gradient}
+does enable a noisy estimation of the gradient of the $F^l(\cdot)$ via
+Monte Carlo simulation as follows. Suppose we simulate a finite
+number, say $\mathbb{S},$ of samples from the distribution of
+$(\Vector{p}^r,\Vector{L}^r,\Vector{w}^r).$ In practice, we can obtain
+these samples by using real-world traces as is done in Section
+\new{\ref{sec:caseStudy}}. For each sample, the Lagrange multipliers
+$(\varrho_i, i \in N)$ can be computed efficiently by solving
+GLB-RT. By averaging the $\mathbb{S}$ instances of $(\varrho_i, i \in
+N)$ thus obtained, we get an unbiased estimate of the gradient of
+$F^l(\cdot).$ This, in turn, enables us to solve EP-LT using a
+stochastic gradient descent method; details follow in
+Section~\ref{sec:AlgorithmDesign}.
+
+
+%\subsection{Characterizations of GLB-RT}
+%\label{sec:char_glb-rt}
+%\new{
+As there are two timescales in optimization, it is critical to investigate how EP-LT affects the operation of geographical load balancing in real-time. We start by answering the following question: how does the long-term procurement $\Vector{q}^l$ impact the power consumption $d^r_i$ in data center $i$? Formally, we have the following intuitive result:
+\begin{lemma}    
+	\label{theorem:RealTimeOptimalDemand}
+	At any data center $i$, an optimal solution always utilizes the long term energy procurement $q^l_i$ and renewable generation $w^r_i$ as much as possible. It is simply represented by
+	\begin{eqnarray}         
+	\begin{cases} 
+	m_i \geq w^r_i+q^l_i  &\mbox{if  } w^r_i + q^l_i < M_i \\ 
+	m_i = M_i & \mbox{if  } w^r_i + q^l_i \geq M_i. 
+	\end{cases}
+	\end{eqnarray}
+\end{lemma}
+\begin{proof} Appendix~\reference{proof:RealTimeOptimalDemand}{A.3 of our technical report \cite{le2016SoCCTechnicalReport}}.
+\end{proof}
+The above lemma states that a data center $i$ uses up the reserved
+electricity, including free renewable energy and pre-purchased
+electricity, because doing so reduces the queueing delay.
+
+
+%In addition, our problem preserves two other properties of GLB along the lines of
+%\cite{liu2011greening} (which considers GLB without the preceding
+%long-term procurement): the \textit{uniqueness} of optimal solution and the
+%\textit{sparsity of routing}.
+%% It turns out that both properties are preserved in our system.
+%The uniqueness property states that the service arrival rate at any
+%data center $i$, $\lambda_i/m_i$, is unique among all optimal
+%solutions. The sparsity property asserts that the number of routing table entries used in
+%the simplest optimal solution is less than or equal to $|N|+|J|-1$, which
+%is much smaller than the maximum number of entries, i.e., $|N|\times|J|$. 
+%Such sparsity is naturally desirable in practice. We omit the proof and readers can refer to
+%the proof of Theorems~2 and~3 in \cite{liu2011greening} for more details.
+
+
+%To begin, it is easy to see that GLB-RT has at least one optimal solution. Although the optimal solution is generally not unique, there are natural aggregate quantities that are unique over the set of optimal solutions, which is a convex set. The optimal solutions preserve the uniqueness and sparsity properties of GLB as in existing works \cite{liu2011greening}. The uniqueness of optimal solutions say that the server arrival rate, $\bar{\lambda}_i = \lambda_i/m_i$, is common across all optimal solutions. It would be impractical if the optimal solutions of GLB-RT required that requests from each source were divided up among all of the data centers. In general, each $\lambda_{ij}$ could be nonzero in an optimal solution, yielding flows of requests from all sources to all data centers. In practice, this would lead to significant scaling issues. The sparsity of optimal solutions allows cloud providers to transform any optimal solution into a practically optimal solution. 
+
+
+
+
+%Implicitly, there is a trade-off between energy cost and queueing delay cost.

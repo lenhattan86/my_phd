@@ -1,0 +1,22 @@
+
+\section{Implementation}
+
+We implement our solution on Yarn Scheduler of Hadoop 2.7.2 \cite{yarn}. The solution design is broken down into two steps, which are \emph{admission control} for the applications and \emph{resource allocation for the excess resource} among the queues. We suppose that each queue represents for a tenant or a type of applications, which have different minimum requirement on resource.
+
+Is minimum resource requirement is necessary for cloud provider? Some applications like Flink requires resource to be ready before running. Iteratively, it keeps asking for more containers until it is satisfied. If it is not satisfied, it does not only waste the resource for nothing but also block the other queued applications. Instead, we offer tenant to indicate their minimum resource requirement. If the application is not satisfied, it is held in the queue and makes resource free for other applications. 
+
+What does minimum resource requirement benefit tenants? By indicating the minimum resource requirement, tenants have more control on their application performance. For instance, tenants can estimate the worst-case performance for their cloud computing jobs based on the minimum resource requirement.
+
+\subsection*{Admission control}
+
+\emph{Minimum resource requirement} is configured for each queue, which represents for each tenant's requirement. To implement this parameter on the Hadoop 2.7.2, we add a property \textit{minReq} to \textit{Queue} class. The default value of \textit{minReq} is zero for the tenants are flexible on resource demand. By this way, all the applications in the same queue require the same minimum amount of resource to complete their tasks. Once the minimum resource is satisfied, the application can be scheduled. Otherwise, it is queued until the cluster has enough resource.
+
+Admission control is to admit as many applications as possible. On the other hand, application's minimum resource requirement must be satisfied. After an application is SUBMITTED to a queue, the scheduler creates an application attempt (AppAttempt) to request the necessary resource. If resource is available for the AppAttempt, it is SCHEDULED to obtain the resource containers. If the cluster resource is not available, the AppAttempt state is set at WAITED to try again.
+
+One important modification on Yarn is to determine whether resource is available for an AppAttempt before scheduling. To do this, we need to compute the resource usage for admission. In the a cluster, the resources are distributed the nodes, it is difficult to determined the amount of resource are used in real time. Although we can do it, it may result in  a deadlock when there are more than one AppAttempt acquiring the resources. Instead, we can determine how much resource are reserved by the running queues. A running queue is a queue that has at least one AppAttempt SCHEDULED to run. 
+
+Is there possible deadlock when scheduling the applications? Yes, it can happen if more than two queues need the resource and update their states a the same time. To prevent the deadlock, we make sure that the states of queues cannot be updated in the same time. People may argue that this could lead to performance degradation. However, the updating processes happens in the master node which last shortly.
+
+\subsection*{Resource allocation for excess resource}
+
+The second step is how to allocate the remaining resource after admission control. A simple solution is to share the resource among the queues by using DRF.

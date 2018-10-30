@@ -1,0 +1,117 @@
+\section{Online Interchangeable-Resource Allocation Problem}
+
+\subsection{Problem Setting}
+
+\desc{Interchangeability}
+
+In the interchangeable resource allocation problem we considered, there are three resources of interests: CPU, GPU and memory (MEM).
+Both CPU and GPU can be used for computational needs in an interchangeable way, MEM demand cannot be replaced by CPU or GPU.
+This can be easily extended to include additional resources such as disk I/O, network I/O.
+
+There are $N$ users in the systems. A user has jobs arriving over time.
+Job $i$ arrives at time $t_i$, the online profiling tool (\S\ref{sec:res_estimation}) can create 2 configurations estimating the demand and processing time of job $i$ as following: $$
+Q_i=
+\begin{bmatrix} 
+c_i & m_i^1 & p_i^1 \\
+g_i & m_i^2 & p_i^2 
+\end{bmatrix} $$ where $c_i, m_i^1, p_i^1$ represents the demand for CPU, memory and its estimated processing time from its CPU configuration; $g_i, m_i^2, p_i^2$ represents the demand for GPU, memory and its estimated processing time from its GPU configuration.
+
+Let $C_c, C_g, C_m$ be capacities of CPU cores, GPUs and memory.
+$A_c, A_g, A_m$ denotes current loads of the cluster on corresponding resources.
+
+\paragraph{Problem statement} \emph{Given job configurations where jobs can interchange between CPUs and GPUs,
+what is the best solution to allocate resources to the jobs such that it maximizes the performance and efficiency while maintains fairness?}
+
+\todo{explain why's it is challenging?}
+
+\subsection{Allocation Policy}
+
+\begin{algorithm}[H]
+\small
+\caption{\name Online \name Scheduler}
+\label{alg:greedy}
+\begin{algorithmic}[1]
+    \State $C,A:$ System capacity and current load
+    \State $L:$ fairness score list of all users
+    \State $Queue_i$: all waiting jobs of user $i$ at current time
+    \State $U$: user set where the fairness scores of all users in $U$ fall in the lowest $\alpha$\% percentage
+    \State $W$: all queueing jobs from set $U$.
+    \State $S$: sorted list of all processing times from all jobs in $W$ (sorted increasingly)
+    \Procedure{OnlineAlloc()}{}
+    \While{$A_c< C_c || A_2 < C_2 ~\&\&~ A_3 < C_3$ }
+    \State pick current value $p_n^m$ from list $S$		\Comment{Default is the first value in $S$}
+    \If{ $m=2 \&\& A_2+ g_n \leq C_2 ~\&\&~ A_3+m_n^2 \leq C_3$ }  \Comment{GPU config}
+    \State{\textsc{JobStart}($L,n$)} 
+    \Comment{Place $n$ on GPU}
+    \State{Update U,W,S}
+    \ElsIf { $m=1 \&\& A_1+ c_n \leq C_1 ~\&\&~ A_3+m_n^1 \leq C_3$ }  \Comment{CPU config}
+    \State{\textsc{JobStart}($L,n$)}  \Comment{Place $n$ on CPU}
+    \State{Update U,W,S}
+    \Else
+    \State Move the next job;
+    \EndIf
+    \EndWhile
+    \EndProcedure
+    \\
+    \Function{JobStart($L,job_j$)}{}  \Comment{Update score if job $j$ starts being processed}
+    \State Remove job $j$ from list $W$
+    \If {job $j$ is from user $i$}
+    \If {$p_j^1 <  p_j^2$} 
+    \If {job $j$ is placed on CPU}
+    $Value(j) = \max(\frac{c_j}{C_1},\frac{m_j^1}{C_3})$
+    \Else ~
+    $Value(j) = \frac{p_j^1}{p_j^2}\max(\frac{c_j}{C_1},\frac{m_j^1}{C_3})$
+    \EndIf
+    \Else
+    \If {job $j$ is placed on CPU}
+    $Value(j) = \frac{p_j^2}{p_j^1} \max(\frac{g_j}{C_2},\frac{m_j^2}{C_3})$
+    \Else ~
+    $Value(j) = \max(\frac{g_j}{C_2},\frac{m_j^2}{C_3})$
+    \EndIf
+    \EndIf
+    \EndIf
+    \State $L(i) = L(i) + Value(j)$
+    \EndFunction     
+    \\
+    \Function{JobFinish($L,job_j$)}{}  \Comment{Update score if job $j$ finishes}
+    \If {job $j$ is from user $i$}
+    \State $L(i) = L(i) - Value(j)$
+    \EndIf
+    \EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+The allocation policy needs to pack the jobs in the queue across candidate users.
+The high level of the policy is as summarized in the following two steps:
+(1) Pick a subset of users who receive less than others based on fairness scores.
+(2) Schedule jobs of the user subset in to optimize their performance.
+The pseudo-code of allocation policy is summarized in Algorithm \ref{alg:greedy}.
+
+To maintain the fairness for step (1), we keep watch on the fairness score of each user.
+%As sharing interachanable resources in space domain is not efficient, we need find another way to maintain fairness.
+We define the fairness score as \textit{transformed dominant share}.
+The idea is the following: Every user wishes his jobs to be finished as fast as possible.
+However, that is not doable as some jobs have to sacrifice and take the suboptimal configurations for the performance of other jobs.
+The system rewards them for taking a suboptimal solution and finish slower.
+Here is how we define \textit{transformed dominant share} value $v(i)$ for a single job $i$. $v(i)$ will be calculated only when it is being processed.
+From $$
+	Q_i=
+	\begin{bmatrix}
+	c_i & m_i^1 & p_i^1 \\
+	g_i & m_i^2 & p_i^2 
+	\end{bmatrix} $$ simply compare $p_i^1$ and $p_i^2$ and check the placement of job $i$. \begin{itemize}
+		\item If $p_i^1 <  p_i^2$, and job $i$ is on CPU, then $v(i) = \max(\frac{c_i}{C_1},\frac{m_i^1}{C_3})$.
+		\item If $p_i^1 <  p_i^2$, and job $i$ is on GPU, then $v(i) =  (\frac{p_i^1}{p_i^2})^\mu \max(\frac{c_i}{C_1},\frac{m_i^1}{C_3})$.
+		\item If $p_i^1 \geq  p_i^2$, and job $i$ is on CPU, then $v(i) =  (\frac{p_i^2}{p_i^1})\mu \max(\frac{g_i}{C_2},\frac{m_i^2}{C_3})$.
+		\item If $p_i^1 \geq  p_i^2$, and job $i$ is on GPU, then $v(i) = \max(\frac{g_i}{C_2},\frac{m_i^2}{C_3})$.
+	\end{itemize} 
+where $\mu \geq 0 $ controls the fairness score when the job is not placed on the preferred resource.
+The \textit{transformed dominant share} value of a user is the sum of all values from its jobs that are currently being processed.
+\textit{Transformed dominant share} will shrink to DRF if there is only a single configuration.
+
+In step (2), obtaining the optimal schedule is actually a nondeterministic polynomial (NP) time problem. 
+We solve this step using heuristic.
+A job $i$ has 2 completion times $p^1_i$ and $p^2_i$ on CPU and GPU respectively.
+A set with $W$ jobs have $2|W|$ processing times.
+We sort the processing times so that we select the job with shortest one to schedule first.
+This heuristic is similar to the shortest remaining time first (SRPT) algorithm.

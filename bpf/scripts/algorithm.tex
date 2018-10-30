@@ -1,0 +1,62 @@
+\begin{algorithm}
+	\small
+\caption{\name Scheduler}
+\label{algorithm1}
+\begin{algorithmic}[1]
+\Procedure{periodicSchedule()}{}
+\State \textsc{admission}($\mathbb{Q}$)
+\State \textsc{allocate}($\mathbb{H},\mathbb{S}, \mathbb{E}$)
+\EndProcedure
+\\
+\Function{LQAdmit({\burstq}s $\mathbb{Q}$)}{}
+\ForAll{\burstq  $Q \in \mathbb{Q}$}	
+\If{safety condition \eqref{eqn:ad-safety} satisfied}
+	\If{fairness condition \eqref{eqn:ad-fair} satisfied}
+		\If{resource condition \eqref{eqn:ad-enough} satisfied}
+			\State Admit $Q$ to hard guarantee $\mathbb{H}$
+		\Else
+			\State Admit $Q$ to soft guarantee $\mathbb{S}$
+		\EndIf
+	\Else
+		\State Admit $Q$ to elastic $\mathbb{E}$ with long-term fair share
+
+	\EndIf
+\Else 
+	\State Reject $Q$
+\EndIf
+\EndFor
+\State \textbf{return} $\{\mathbb{H},\mathbb{S},\mathbb{E}\}$	
+\EndFunction
+\\
+\Function{TQAdmit(queue $\mathbb{Q}$)}{}
+\ForAll{\batchq  $Q \in \mathbb{Q}$}	
+	\If {safety condition \eqref{eqn:ad-safety} satisfied}
+		\State Admit $Q$ to elastic $\mathbb{E}$ with long-term fair share
+	\Else 
+		\State Reject $Q$
+	\EndIf
+\EndFor
+\State \textbf{return} $\{\mathbb{E}\}$
+\EndFunction
+\\
+\Function{allocate($\mathbb{H}$, $\mathbb{S}$, $\mathbb{E}$)}{}
+\ForAll{\burstq $Q \in \mathbb{H}$}
+\State $\myvec{a_i}(t)=\frac{\myvec{d_i}(n)}{t_i(n)}$ for $t\in[T_i(n),T_i(n+1)]$ %until $Q$'s consumption reaches $\myvec{d_i}(n)t_i(n)$. 
+\EndFor
+\ForAll{\burstq $Q \in \mathbb{S}$}
+\State allocate $\myvec{C}-\sum_{j\in \mathbb{H}}\myvec{a_j}(t)$ based on SRPT until each {\burstq}-$i$'s allocation reaches $\myvec{d_i}(n)$ or the deadline arrives.
+\EndFor
+\State Obtain the remaining resources $\myvec{L}$
+\State DRF($\mathbb{E}$, $\myvec{L}$)
+\EndFunction
+%\State Reset $\mathbb{E} = \mathbb{E} \cup \mathbb{U}$, $\mathbb{U} = \emptyset$
+%\State Sort $\mathbb{E}$ based on queue start time.
+%\ForAll{\burstq  $E \in \mathbb{E}$}	
+%	\If {short-term conditions \eqref{eqn:shortterm_adm_cond} satisfied}
+%		\State Update $\mathbb{U} = \mathbb{U} \cup U$, $\mathbb{E} = \mathbb{E} \setminus E$
+%	\EndIf
+%\EndFor
+%\State \textbf{return} $\{\mathbb{U} ,\mathbb{E}  \}$	
+%\EndFunction
+\end{algorithmic}
+\end{algorithm}

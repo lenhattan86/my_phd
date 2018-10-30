@@ -1,0 +1,52 @@
+\newcommand{\reference}[2]{
+	\ifthenelse{\boolean{isTechReport}}
+	    {\ref{#1}} 
+	    {#2}}
+
+
+%\newcommand{\desc}[1]{\hl{#1}}
+\newcommand{\desc}[1]{}
+
+%\newcommand{\delete}[1]{\st{#1}}
+%\newcommand{\new}[1]{\hl{#1}}
+%\newcommand{\diff}[1]{\textcolor{red}{#1}}
+
+\newcommand{\diff}[1]{#1}
+\newcommand{\delete}[1]{}
+\newcommand{\new}[1]{#1}
+
+
+
+\newcommand{\nhattan}[1]{\textcolor{blue}{Tan says: #1}}
+%\newcommand{\zhenhua}[1]{}
+
+\newcommand{\zhenhua}[1]{\textcolor{red}{Zhenhua says: #1}}
+%\newcommand{\zhenhua}[1]{}
+
+\newcommand{\ramesh}[1]{\textcolor{blue}{Ramesh says: #1}}
+%\newcommand{\ramesh}[1]{}
+
+\newcommand{\david}[1]{\textcolor{magenta}{David says: #1}}
+%\newcommand{\david}[1]{}
+
+\newcommand{\jk}[1]{\textcolor{green}{JK says: #1}}
+%\newcommand{\jk}[1]{}
+
+\newcommand{\todo}[1]{\textcolor{red}{(TODO: #1)}}
+
+\newcommand{\argmin}{\arg\!\min}
+
+%\newtheorem{theorem}{Theorem}[section]
+\newtheorem{theorem}{Theorem}
+%\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\newcommand{\Exp}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\R}{\mathbb{R}}
+
+%\newcommand{\Vector}[1]{\textit{\textbf{#1}}}
+\newcommand{\Vector}[1]{\boldsymbol{#1}}
+
+\newcommand{\ignore}[1]{}

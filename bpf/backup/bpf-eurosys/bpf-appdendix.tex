@@ -1,0 +1,103 @@
+% TEMPLATE for Usenix papers, specifically to meet requirements of
+%  USENIX '05
+% originally a template for producing IEEE-format articles using LaTeX.
+%   written by Matthew Ward, CS Department, Worcester Polytechnic Institute.
+% adapted by David Beazley for his excellent SWIG paper in Proceedings,
+%   Tcl 96
+% turned into a smartass generic template by De Clarke, with thanks to
+%   both the above pioneers
+% use at your own risk.  Complaints to /dev/null.
+% make it two column with no page numbering, default is 10 point
+
+% Munged by Fred Douglis <douglis@research.att.com> 10/97 to separate
+% the .sty file from the LaTeX source template, so that people can
+% more easily include the .sty file into an existing document.  Also
+% changed to more closely follow the style guidelines as represented
+% by the Word sample file. 
+
+% Note that since 2010, USENIX does not require endnotes. If you want
+% foot of page notes, don't include the endnotes package in the 
+% usepackage command, below.
+
+% This version uses the latex2e styles, not the very ancient 2.09 stuff.
+\documentclass[letterpaper,twocolumn,10pt]{article}
+\usepackage{usenix,epsfig,endnotes}
+
+\input{packages/packages_nsdi}
+\input{packages/macros_nsdi}
+
+\begin{document}
+
+%don't want date printed
+\date{}
+
+%make title bold and 14 pt font (Latex default is non-bold, 16 pt)
+\title{\Large \bf \name: Mitigating the Burstiness-Fairness Tradeoff in Multi-Resource Clusters}
+
+
+%for single author (just remove % characters)
+%\author{
+%{\rm Tan N. Le}\\
+%SUNY Korea \& Stony Brook University
+%\and
+%{\rm  Emaad Manzoor}\\
+%Carnegie Mellon University
+%\and
+%{\rm  Zhenhua Liu}\\
+%Stony Brook University
+%\and
+%{\rm Mosharaf Chowdhury}\\
+%University of Michigan
+%} % end author
+
+\maketitle
+
+% Use the following at camera-ready time to suppress page numbers.
+% Comment it out when you first submit the paper for review.
+\thispagestyle{empty}
+
+\appendix
+\section*{Appendix: Proofs for \name Properties}
+\label{sec:app}
+
+\begin{proof}[Proof of Theorem 3.1]%\zhenhua{Xiao, could you please add the proofs? The following paragraphs may be useful.}\xiao{added below,I didn't say much about pareto-efficienncy as in our discussion before, I feel this is enough.} 
+	The safety condition and fairness condition ensure the long-term fairness for all {\batchq}s. They have no fewer resources than any {\burstq} in the long-term, so it is beneficial for them to share the resources. 
+	
+	For {\burstq}s in $\mathbb{H}$, they have hard resource guarantee and therefore can meet all the deadlines. For {\burstq}s in $\mathbb{S}$, they have resource guarantee whenever possible, and only need to wait after {\burstq}s in $\mathbb{H}$ when there is a conflict. Therefore, their performance is near optimal and much better than if they were under fair allocation policies. Therefore, both of them have incentives to share. % both of them reach long-term fairness and sharing incentive.
+	
+	For burst guarantee, it is straightforward from our algorithm that we have the hard guarantee for all {\burstq}s in $\mathbb{H}$, and best-effort guarantee for {\burstq}s in $\mathbb{S}$.
+	
+	The addition of $\mathbb{S}$ allows more {\burstq}s to be admitted with resource guarantee, and therefore increases the {\burstq} utilization. Finally, we fulfill spare resources with {\batchq}s, so system utilization is maximized, reaching Pareto efficiency.
+\end{proof}
+
+\begin{proof}[Proof of Theorem 3.2]
+	
+	%\zhenhua{Xiao, I rewrote the following proof. Please check if it works for you.}
+	Let the true parameters of the LQ be $(\myvec{d},t)$, where $\myvec{d}$ is the demand during bursts and $t$ is the maximum allowed processing time specified in its service level agreements. Let the request parameter be $(\myvec{v},t')$. We first argue that $\myvec{v}=\alpha \myvec{d}$ holds with $\alpha$ being a non-negative scalar.
+	
+	As $\myvec{d}=\langle d_1,d_2,\cdots,d_k \rangle,\myvec{v}=\langle v_1,v_2,\cdots,v_k \rangle$, let $p= \min_i \left\{\frac{v_i}{d_i}\right\}$. Define a new vector $\myvec{z}= \langle z_1,z_2,\cdots,z_k \rangle$ and let $z_i  = pd_i$. Notice here $\myvec{z}$ has the same performance as $\myvec{v}$, while $z_i \leq v_i$ for any $i$. Therefore, $\myvec{z}$ may request no more resources than $\myvec{v}$, which is more likely to be admitted. Hence, it is always better to request $\myvec{z}$, which is proportional to $\myvec{d}$, the true demand.
+	
+	%Another thing is that, for user to complete her job in time, we have our deadline condition $t' \leq t$, so it is trivial that $\alpha \geq 1$.
+	
+	Now consider the two parameters $(\myvec{d},t)$ in \name. If a queue requests more bursty demand ($t'\myvec{v} \geq t\myvec{d}$ with at least one inequality is strictly greater than), it is less likely to be admitted with guarantees. If admitted, it satisfied the deadline constraint either way. Therefore, there is no incentive to request more than what it really needs.
+	
+	On the other hand, if a queue requests less bursty demand ($t'\myvec{v} \leq t\myvec{d}$ with at least one inequality is strictly smaller than), it is more likely to be admitted with guarantees. However, it may be provided fewer resources than it actually needs to satisfy the deadline constraint. Therefore, it has no incentive to request less than what it really needs either.
+	
+	The last step is that when a queue requests the true bursty demand ($t'\myvec{v} = t\myvec{d}$), it has no incentive to request a higher or lower rate, i.e., $\myvec{v}=\myvec{d}$. This is parallel to the argument for the total bursty demand: if it requests a higher demand, it still satisfies the deadline if admitted, but is more likely to be rejected; if it requests a lower rate with a larger $t'$, it cannot finish within the deadline even admitted. 
+	
+	%For the safety condition, these parameters are not involved. For fairness condition, we have $t'\myvec{v} \leq t\myvec{d}$, because if user requests more size, there is a higher chance that the queue will be put in $E$ queue, which is bad for the completion time.
+	
+	%Another situation is that the user reports more demand and shorter burst time, but they have $t'\myvec{v} = t\myvec{d}$. We claim this is not a dominant strategy as from condition 4, the queue is more likely to be put in S. And for S queues, we don't have guarantee that they can be finished with in their requested time. So in general, the user should report truthfully about their burst demand and duration. 
+\end{proof}
+
+
+%\theendnotes
+
+\end{document}
+
+
+
+
+
+
+
